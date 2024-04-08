@@ -2,7 +2,7 @@
  * #%L
  * Liquibase extension for Clickhouse
  * %%
- * Copyright (C) 2020 - 2022 Mediarithmics
+ * Copyright (C) 2020 - 2024 Genestack LTD
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,21 @@
  * limitations under the License.
  * #L%
  */
-package liquibase.ext.clickhouse.sqlgenerator;
+package liquibase.ext.clickhouse.sqlgenerator.changelog;
 
 import liquibase.ext.clickhouse.database.ClickHouseDatabase;
 import liquibase.ext.clickhouse.params.ClusterConfig;
 import liquibase.ext.clickhouse.params.ParamsLoader;
+import liquibase.ext.clickhouse.sqlgenerator.SqlGeneratorUtil;
 
 import liquibase.changelog.ChangeSet;
 import liquibase.database.Database;
 import liquibase.sql.Sql;
 import liquibase.sqlgenerator.SqlGeneratorChain;
-import liquibase.sqlgenerator.core.UpdateChangeSetChecksumGenerator;
-import liquibase.statement.core.UpdateChangeSetChecksumStatement;
+import liquibase.sqlgenerator.core.RemoveChangeSetRanStatusGenerator;
+import liquibase.statement.core.RemoveChangeSetRanStatusStatement;
 
-public class UpdateChangeSetChecksumClickHouse extends UpdateChangeSetChecksumGenerator {
+public class RemoveChangeSetRanStatusClickHouse extends RemoveChangeSetRanStatusGenerator {
 
   @Override
   public int getPriority() {
@@ -38,30 +39,28 @@ public class UpdateChangeSetChecksumClickHouse extends UpdateChangeSetChecksumGe
   }
 
   @Override
-  public boolean supports(UpdateChangeSetChecksumStatement statement, Database database) {
+  public boolean supports(RemoveChangeSetRanStatusStatement statement, Database database) {
     return database instanceof ClickHouseDatabase;
   }
 
   @Override
   public Sql[] generateSql(
-      UpdateChangeSetChecksumStatement statement,
+      RemoveChangeSetRanStatusStatement statement,
       Database database,
       SqlGeneratorChain sqlGeneratorChain) {
     ClusterConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
 
     ChangeSet changeSet = statement.getChangeSet();
-    String updateChecksumQuery =
+    String unlockQuery =
         String.format(
-            "ALTER TABLE `%s`.%s "
+            "DELETE FROM `%s`.%s "
                 + SqlGeneratorUtil.generateSqlOnClusterClause(properties)
-                + "UPDATE MD5SUM = '%s' WHERE ID = '%s' AND AUTHOR = '%s' AND FILENAME = '%s' SETTINGS mutations_sync = 1",
-            database.getDefaultSchemaName(),
+                + " WHERE ID = '%s' AND AUTHOR = '%s' AND FILENAME = '%s' SETTINGS mutations_sync = 2",
+            database.getLiquibaseCatalogName(),
             database.getDatabaseChangeLogTableName(),
-            changeSet.generateCheckSum().toString(),
             changeSet.getId(),
             changeSet.getAuthor(),
             changeSet.getFilePath());
-
-    return SqlGeneratorUtil.generateSql(database, updateChecksumQuery);
+    return SqlGeneratorUtil.generateSql(database, unlockQuery);
   }
 }

@@ -2,7 +2,7 @@
  * #%L
  * Liquibase extension for Clickhouse
  * %%
- * Copyright (C) 2020 - 2022 Mediarithmics
+ * Copyright (C) 2020 - 2024 Genestack LTD
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,21 @@
  * limitations under the License.
  * #L%
  */
-package liquibase.ext.clickhouse.sqlgenerator;
+package liquibase.ext.clickhouse.sqlgenerator.changeloglock;
 
 import liquibase.ext.clickhouse.database.ClickHouseDatabase;
 import liquibase.ext.clickhouse.params.ClusterConfig;
 import liquibase.ext.clickhouse.params.ParamsLoader;
+import liquibase.ext.clickhouse.sqlgenerator.SqlGeneratorUtil;
 
-import liquibase.changelog.ChangeSet;
 import liquibase.database.Database;
 import liquibase.sql.Sql;
 import liquibase.sqlgenerator.SqlGeneratorChain;
-import liquibase.sqlgenerator.core.RemoveChangeSetRanStatusGenerator;
-import liquibase.statement.core.RemoveChangeSetRanStatusStatement;
+import liquibase.sqlgenerator.core.InitializeDatabaseChangeLogLockTableGenerator;
+import liquibase.statement.core.InitializeDatabaseChangeLogLockTableStatement;
 
-public class RemoveChangeSetRanStatusClickHouse extends RemoveChangeSetRanStatusGenerator {
+public class InitializeDatabaseChangeLogLockClickHouse
+    extends InitializeDatabaseChangeLogLockTableGenerator {
 
   @Override
   public int getPriority() {
@@ -38,28 +39,31 @@ public class RemoveChangeSetRanStatusClickHouse extends RemoveChangeSetRanStatus
   }
 
   @Override
-  public boolean supports(RemoveChangeSetRanStatusStatement statement, Database database) {
+  public boolean supports(
+      InitializeDatabaseChangeLogLockTableStatement statement, Database database) {
     return database instanceof ClickHouseDatabase;
   }
 
   @Override
   public Sql[] generateSql(
-      RemoveChangeSetRanStatusStatement statement,
+      InitializeDatabaseChangeLogLockTableStatement statement,
       Database database,
       SqlGeneratorChain sqlGeneratorChain) {
     ClusterConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
 
-    ChangeSet changeSet = statement.getChangeSet();
-    String unlockQuery =
+    String clearDatabaseQuery =
         String.format(
-            "ALTER TABLE `%s`.%s "
+            "TRUNCATE TABLE `%s`.%s "
                 + SqlGeneratorUtil.generateSqlOnClusterClause(properties)
-                + "DELETE WHERE ID = '%s' AND AUTHOR = '%s' AND FILENAME = '%s' SETTINGS mutations_sync = 1",
-            database.getDefaultSchemaName(),
-            database.getDatabaseChangeLogTableName(),
-            changeSet.getId(),
-            changeSet.getAuthor(),
-            changeSet.getFilePath());
-    return SqlGeneratorUtil.generateSql(database, unlockQuery);
+                + "SETTINGS alter_sync = 1",
+            database.getLiquibaseCatalogName(),
+            database.getDatabaseChangeLogLockTableName());
+
+    String initLockQuery =
+        String.format(
+            "INSERT INTO `%s`.%s (ID, LOCKED, SIGN) VALUES (1, 0, 1)",
+            database.getLiquibaseCatalogName(), database.getDatabaseChangeLogLockTableName());
+
+    return SqlGeneratorUtil.generateSql(database, clearDatabaseQuery, initLockQuery);
   }
 }

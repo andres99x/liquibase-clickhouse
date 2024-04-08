@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2011-2021 Genestack Limited
+  ~ All Rights Reserved
+  ~ THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF GENESTACK LIMITED
+  ~ The copyright notice above does not evidence any
+  ~ actual or intended publication of such source code.
+  -->
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+    <changeSet id="init" author="oak&amp;viacheslav.pivovarov">
+        <sql splitStatements="true">
+            <![CDATA[
+            CREATE TABLE IF NOT EXISTS IndexShard ON CLUSTER '{cluster}'
+            (
+                rowId UInt64,
+                fileId UInt64,
+                line String
+            )
+            ENGINE = ReplicatedMergeTree('/clickhouse/{shard}/default/{table}', '{replica}')
+            ORDER BY (fileId);
+
+            CREATE TABLE IF NOT EXISTS IndexDist ON CLUSTER '{cluster}'
+            AS IndexShard
+                ENGINE = Distributed('{cluster}', 'default', IndexShard, fileId);
+
+            CREATE DICTIONARY IF NOT EXISTS IndexDict ON CLUSTER '{cluster}'
+            (
+                rowId     UInt64,
+                fileId UInt64,
+                line  String
+            )
+            PRIMARY KEY rowId
+            SOURCE(CLICKHOUSE(
+                      db 'default'
+                      table 'IndexDist'
+                   invalidate_query 'select count() from IndexDist'
+            )
+            )
+            LAYOUT(HASHED(PREALLOCATE 1))
+            LIFETIME(1);
+
+            CREATE TABLE IF NOT EXISTS DataByRowShard ON CLUSTER '{cluster}'
+            (
+                rowId              UInt64,
+                item             String,
+                fileId          UInt64  MATERIALIZED dictGetUInt64('default.IndexDict', 'fileId', rowId) CODEC(Delta, Default),
+            )
+                ENGINE = ReplicatedMergeTree('/clickhouse/{shard}/default/{table}', '{replica}')
+                ORDER BY (rowId);
+
+            CREATE TABLE IF NOT EXISTS DataByRowDist ON CLUSTER '{cluster}'
+            AS DataByRowShard
+                ENGINE = Distributed('{cluster}', 'default', DataByRowShard, fileId);
+            ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>

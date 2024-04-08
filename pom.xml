@@ -3,9 +3,9 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.mediarithmics</groupId>
+    <groupId>com.genestack</groupId>
     <artifactId>liquibase-clickhouse</artifactId>
-    <version>0.7.3-SNAPSHOT</version>
+    <version>0.8.0</version>
     <packaging>jar</packaging>
     <inceptionYear>2020</inceptionYear>
 
@@ -14,8 +14,8 @@
     <url>https://github.com/mediarithmics/liquibase-clickhouse</url>
 
     <organization>
-        <name>Mediarithmics</name>
-        <url>https://www.mediarithmics.com</url>
+        <name>Genestack LTD</name>
+        <url>https://genestack.com</url>
     </organization>
 
     <developers>
@@ -35,13 +35,13 @@
             <organization>mediarithmics</organization>
         </developer>
     </developers>
-
-    <scm>
-        <connection>scm:git:git:@github.com:mediarithmics/liquibase-clickhouse.git</connection>
-        <developerConnection>scm:git:git:@github.com:mediarithmics/liquibase-clickhouse.git</developerConnection>
-        <url>https://github.com/mediarithmics/liquibase-clickhouse</url>
-        <tag>HEAD</tag>
-    </scm>
+    <contributors>
+        <contributor>
+            <email>viacheslav.pivovarov@genestack.com</email>
+            <name>Viacheslav Pivovarov</name>
+            <organization>Genestack</organization>
+        </contributor>
+    </contributors>
 
     <licenses>
         <license>
@@ -53,43 +53,49 @@
 
     <distributionManagement>
         <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <id>maven-snapshots</id>
+            <url>https://nexus.devops.gs.team/repository/maven-snapshots</url>
         </snapshotRepository>
         <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>maven-group</id>
+            <url>https://nexus.devops.gs.team/repository/maven-releases</url>
         </repository>
     </distributionManagement>
 
     <properties>
         <encoding>UTF-8</encoding>
         <project.build.sourceEncoding>${encoding}</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <clickhouse-jdbc.version>0.3.2</clickhouse-jdbc.version>
-        <liquibase.version>4.15.0</liquibase.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <clickhouse-jdbc.version>0.6.0-patch1</clickhouse-jdbc.version>
+        <liquibase.version>4.26.0</liquibase.version>
         <junit.version>5.4.0</junit.version>
-        <test-containers.version>1.17.3</test-containers.version>
+        <test-containers.version>1.19.7</test-containers.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
-        <maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
-        <maven-surefire-plugin.version>2.22.1</maven-surefire-plugin.version>
+        <maven-plugin-plugin.version>3.9.6</maven-plugin-plugin.version>
+        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
         <license-maven-plugin.version>2.0.0</license-maven-plugin.version>
-        <maven-shade-plugin.version>3.2.0</maven-shade-plugin.version>
+        <maven-shade-plugin.version>3.5.2</maven-shade-plugin.version>
         <fmt-maven-plugin.version>2.9.1</fmt-maven-plugin.version>
-        <impsort-maven-plugin.version>1.4.1</impsort-maven-plugin.version>
-        <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-        <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
-        <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
-        <snakeyaml.version>1.28</snakeyaml.version>
-        <typesafe-config.version>1.4.1</typesafe-config.version>
+        <impsort-maven-plugin.version>1.9.0</impsort-maven-plugin.version>
+        <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
+        <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
+        <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
+        <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
+        <snakeyaml.version>2.2</snakeyaml.version>
+        <typesafe-config.version>1.4.3</typesafe-config.version>
+        <junit.version>5.10.2</junit.version>
+        <slf4j.version>2.0.12</slf4j.version>
+        <apache.http5.version>5.3.1</apache.http5.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>com.clickhouse</groupId>
             <artifactId>clickhouse-jdbc</artifactId>
+            <classifier>http</classifier>
             <version>${clickhouse-jdbc.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.liquibase</groupId>
@@ -125,10 +131,52 @@
             <artifactId>config</artifactId>
             <version>${typesafe-config.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+            <version>${junit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>${apache.http5.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${maven-checkstyle-plugin.version}</version>
+                <configuration>
+                    <consoleOutput>true</consoleOutput>
+                    <configLocation>${project.basedir}/checkstyle.xml</configLocation>
+                    <failOnViolation>true</failOnViolation>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -155,20 +203,20 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>${maven-gpg-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+            <!--            <plugin>-->
+            <!--                <groupId>org.apache.maven.plugins</groupId>-->
+            <!--                <artifactId>maven-gpg-plugin</artifactId>-->
+            <!--                <version>${maven-gpg-plugin.version}</version>-->
+            <!--                <executions>-->
+            <!--                    <execution>-->
+            <!--                        <id>sign-artifacts</id>-->
+            <!--                        <phase>verify</phase>-->
+            <!--                        <goals>-->
+            <!--                            <goal>sign</goal>-->
+            <!--                        </goals>-->
+            <!--                    </execution>-->
+            <!--                </executions>-->
+            <!--            </plugin>-->
             <plugin>
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
@@ -203,16 +251,16 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>${nexus-staging-maven-plugin.version}</version>
-                <configuration>
-                    <serverId>sonatype-nexus-staging</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                </configuration>
-            </plugin>
+            <!--            <plugin>-->
+            <!--                <groupId>org.sonatype.plugins</groupId>-->
+            <!--                <artifactId>nexus-staging-maven-plugin</artifactId>-->
+            <!--                <version>${nexus-staging-maven-plugin.version}</version>-->
+            <!--                <configuration>-->
+            <!--                    <serverId>maven-snapshots</serverId>-->
+            <!--                    <nexusUrl>https://nexus.devops.gs.team/repository/maven-snapshots</nexusUrl>-->
+            <!--                    <autoReleaseAfterClose>true</autoReleaseAfterClose>-->
+            <!--                </configuration>-->
+            <!--            </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -245,22 +293,6 @@
                                 </relocation>
                             </relocations>
                         </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.coveo</groupId>
-                <artifactId>fmt-maven-plugin</artifactId>
-                <version>${fmt-maven-plugin.version}</version>
-                <configuration>
-                    <skipSortingImports>true</skipSortingImports>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>process-sources</phase>
-                        <goals>
-                            <goal>format</goal>
-                        </goals>
                     </execution>
                 </executions>
             </plugin>

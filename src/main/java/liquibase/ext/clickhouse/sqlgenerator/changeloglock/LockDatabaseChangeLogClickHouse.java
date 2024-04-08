@@ -2,7 +2,7 @@
  * #%L
  * Liquibase extension for Clickhouse
  * %%
- * Copyright (C) 2020 - 2022 Mediarithmics
+ * Copyright (C) 2020 - 2024 Genestack LTD
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,10 @@
  * limitations under the License.
  * #L%
  */
-package liquibase.ext.clickhouse.sqlgenerator;
+package liquibase.ext.clickhouse.sqlgenerator.changeloglock;
 
 import liquibase.ext.clickhouse.database.ClickHouseDatabase;
-import liquibase.ext.clickhouse.params.ClusterConfig;
-import liquibase.ext.clickhouse.params.ParamsLoader;
+import liquibase.ext.clickhouse.sqlgenerator.SqlGeneratorUtil;
 
 import liquibase.database.Database;
 import liquibase.sql.Sql;
@@ -30,6 +29,10 @@ import liquibase.sqlgenerator.core.LockDatabaseChangeLogGenerator;
 import liquibase.statement.core.LockDatabaseChangeLogStatement;
 
 public class LockDatabaseChangeLogClickHouse extends LockDatabaseChangeLogGenerator {
+
+  public LockDatabaseChangeLogClickHouse() {
+    super();
+  }
 
   @Override
   public int getPriority() {
@@ -46,15 +49,13 @@ public class LockDatabaseChangeLogClickHouse extends LockDatabaseChangeLogGenera
       LockDatabaseChangeLogStatement statement,
       Database database,
       SqlGeneratorChain sqlGeneratorChain) {
-    ClusterConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
 
     String host = String.format("%s %s (%s)", hostname, hostDescription, hostaddress);
     String lockQuery =
         String.format(
-            "ALTER TABLE `%s`.%s "
-                + SqlGeneratorUtil.generateSqlOnClusterClause(properties)
-                + "UPDATE LOCKED = 1,LOCKEDBY = '%s',LOCKGRANTED = %s WHERE ID = 1 AND LOCKED = 0 SETTINGS mutations_sync = 1",
-            database.getDefaultSchemaName(),
+            "INSERT INTO `%s`.%s (ID, LOCKED, LOCKEDBY, LOCKGRANTED, SIGN) "
+                + "VALUES (1, 1, '%s', %s, 1)",
+            database.getLiquibaseCatalogName(),
             database.getDatabaseChangeLogLockTableName(),
             host,
             ClickHouseDatabase.CURRENT_DATE_TIME_FUNCTION);

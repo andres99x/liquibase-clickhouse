@@ -2,7 +2,7 @@
  * #%L
  * Liquibase extension for Clickhouse
  * %%
- * Copyright (C) 2020 - 2022 Mediarithmics
+ * Copyright (C) 2020 - 2024 Genestack LTD
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,10 @@
  * limitations under the License.
  * #L%
  */
-package liquibase.ext.clickhouse.sqlgenerator;
+package liquibase.ext.clickhouse.sqlgenerator.changeloglock;
 
 import liquibase.ext.clickhouse.database.ClickHouseDatabase;
-import liquibase.ext.clickhouse.params.ClusterConfig;
-import liquibase.ext.clickhouse.params.ParamsLoader;
+import liquibase.ext.clickhouse.sqlgenerator.SqlGeneratorUtil;
 
 import liquibase.database.Database;
 import liquibase.sql.Sql;
@@ -46,15 +45,11 @@ public class UnlockDatabaseChangelogClickHouse extends UnlockDatabaseChangeLogGe
       UnlockDatabaseChangeLogStatement statement,
       Database database,
       SqlGeneratorChain sqlGeneratorChain) {
-    ClusterConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
-
     String unlockQuery =
         String.format(
-            "ALTER TABLE `%s`.%s "
-                + SqlGeneratorUtil.generateSqlOnClusterClause(properties)
-                + "UPDATE LOCKED = 0,LOCKEDBY = null, LOCKGRANTED = null WHERE ID = 1 AND LOCKED = 1 SETTINGS mutations_sync = 1",
-            database.getDefaultSchemaName(),
-            database.getDatabaseChangeLogLockTableName());
+            "INSERT INTO `%s`.%s (ID, LOCKED, LOCKEDBY, LOCKGRANTED, SIGN) "
+                + "VALUES (1, 1, null, null, -1)",
+            database.getLiquibaseCatalogName(), database.getDatabaseChangeLogLockTableName());
 
     return SqlGeneratorUtil.generateSql(database, unlockQuery);
   }
