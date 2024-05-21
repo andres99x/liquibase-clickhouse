@@ -19,12 +19,11 @@
  */
 package liquibase.ext.clickhouse.sqlgenerator.changeloglock;
 
-import java.util.Locale;
-
 import liquibase.ext.clickhouse.database.ClickHouseDatabase;
-import liquibase.ext.clickhouse.params.ClusterConfig;
+import liquibase.ext.clickhouse.params.LiquibaseClickHouseConfig;
 import liquibase.ext.clickhouse.params.ParamsLoader;
 import liquibase.ext.clickhouse.sqlgenerator.SqlGeneratorUtil;
+import liquibase.ext.clickhouse.sqlgenerator.changeloglock.template.CreateDatabaseChangeLogLockTableTemplate;
 
 import liquibase.database.Database;
 import liquibase.sql.Sql;
@@ -51,38 +50,11 @@ public class CreateDatabaseChangeLogLockTableClickHouse
         Database database,
         SqlGeneratorChain sqlGeneratorChain
     ) {
-        ClusterConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
-        String tableName = database.getDatabaseChangeLogLockTableName();
-
-        String createTableQuery =
-            String.format(
-                "CREATE TABLE IF NOT EXISTS `%s`.%s "
-                    + SqlGeneratorUtil.generateSqlOnClusterClause(properties)
-                    + "("
-                    + "ID Int64,"
-                    + "SIGN Int8,"
-                    + "LOCKED UInt8,"
-                    + "LOCKGRANTED Nullable(DateTime64),"
-                    + "LOCKEDBY Nullable(String)"
-                    + ") "
-                    + generateSqlEngineClauseCollapsing(properties, tableName),
-                database.getLiquibaseCatalogName(),
-                tableName
-            );
+        LiquibaseClickHouseConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
+        String createTableQuery = properties.accept(
+            new CreateDatabaseChangeLogLockTableTemplate(database)
+        );
 
         return SqlGeneratorUtil.generateSql(database, createTableQuery);
-    }
-
-    private static String generateSqlEngineClauseCollapsing(
-        ClusterConfig properties, String tableName
-    ) {
-        if (properties != null) {
-            return String.format(
-                "ENGINE ReplicatedCollapsingMergeTree('%s','%s', SIGN) ORDER BY (ID, LOCKED)",
-                properties.getTableZooKeeperPathPrefix() + tableName.toLowerCase(Locale.ROOT),
-                properties.getTableReplicaName()
-            );
-        }
-        return "ENGINE CollapsingMergeTree(SIGN) ORDER BY (ID, LOCKED)";
     }
 }

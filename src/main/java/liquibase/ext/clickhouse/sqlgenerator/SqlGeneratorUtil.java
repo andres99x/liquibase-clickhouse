@@ -23,8 +23,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import liquibase.ext.clickhouse.params.ClusterConfig;
-
 import liquibase.database.Database;
 import liquibase.sql.Sql;
 import liquibase.sqlgenerator.SqlGeneratorFactory;
@@ -44,13 +42,5 @@ public final class SqlGeneratorUtil {
             allSqlStatements.addAll(Arrays.asList(perStatement));
         }
         return allSqlStatements.toArray(new Sql[0]);
-    }
-
-    public static String generateSqlOnClusterClause(ClusterConfig properties) {
-        if (properties != null) {
-            return String.format("ON CLUSTER '%s' ", properties.getClusterName());
-        } else {
-            return " ";
-        }
     }
 }

@@ -19,27 +19,35 @@
  */
 package liquibase;
 
-import static org.junit.jupiter.api.Assertions.fail;
+import liquibase.ext.clickhouse.params.StandaloneConfig;
+import org.junit.jupiter.api.BeforeAll;
+import org.testcontainers.containers.ClickHouseContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.sql.Connection;
 
-import org.testcontainers.clickhouse.ClickHouseContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @Testcontainers
 public class ClickHouseTest extends BaseClickHouseTest {
 
-  @Container
-  private static final ClickHouseContainer clickHouseContainer =
-      new ClickHouseContainer("clickhouse/clickhouse-server:24.3.2");
 
-  @Override
-  protected void doWithConnection(ThrowingConsumer<Connection> consumer) {
-    try (Connection connection = clickHouseContainer.createConnection("")) {
-      consumer.accept(connection);
-    } catch (Exception e) {
-      fail(e);
+    @BeforeAll
+    static void config() throws Exception {
+        setConfig(new StandaloneConfig());
     }
-  }
+
+    @Container
+    private static final ClickHouseContainer clickHouseContainer =
+        new ClickHouseContainer("clickhouse/clickhouse-server:24.1.6");
+
+    @Override
+    protected void doWithConnection(BaseClickHouseTest.ThrowingConsumer<Connection> consumer) {
+        try (Connection connection = clickHouseContainer.createConnection("")) {
+            consumer.accept(connection);
+        } catch (Exception e) {
+            fail(e);
+        }
+    }
 }

@@ -24,106 +24,121 @@ import java.sql.Connection;
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
+import liquibase.ext.clickhouse.params.LiquibaseClickHouseConfig;
+import liquibase.ext.clickhouse.params.ParamsLoader;
+import liquibase.ext.clickhouse.params.StandaloneConfig;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import liquibase.resource.ResourceAccessor;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.shaded.org.apache.commons.io.output.NullWriter;
 
 public abstract class BaseClickHouseTest {
-  @Test
-  void canInitializeLiquibaseSchema() {
-    runLiquibase("empty-changelog.xml", (liquibase, connection) -> liquibase.update(""));
-  }
+    @Test
+    void canInitializeLiquibaseSchema() {
+        runLiquibase("empty-changelog.xml", (liquibase, connection) -> liquibase.update(""));
+    }
 
-  @Test
-  void canExecuteChangelog() {
-    // Expected single row from
-    runLiquibase(
-        "changelog.xml",
-        (liquibase, connection) -> {
-          liquibase.update("");
-          liquibase.update(""); // Test that successive updates are working
-        });
-  }
+    @Test
+    void canExecuteChangelog() {
+        // Expected single row from
+        runLiquibase(
+            "changelog.xml",
+            (liquibase, connection) -> {
+                liquibase.update("");
+                liquibase.update(""); // Test that successive updates are working
+            }
+        );
+    }
 
-  @Test
-  void canRollbackChangelog() {
-    runLiquibase(
-        "changelog.xml",
-        (liquibase, connection) -> {
-          liquibase.update("");
-          liquibase.rollback(2, "");
-        });
-  }
+    @Test
+    void canRollbackChangelog() {
+        runLiquibase(
+            "changelog.xml",
+            (liquibase, connection) -> {
+                liquibase.update("");
+                liquibase.rollback(2, "");
+            }
+        );
+    }
 
-  @Test
-  void canTagDatabase() {
-    runLiquibase(
-        "changelog.xml",
-        (liquibase, connection) -> {
-          liquibase.update("");
-          liquibase.tag("testTag");
-        });
-  }
+    @Test
+    void canTagDatabase() {
+        runLiquibase(
+            "changelog.xml",
+            (liquibase, connection) -> {
+                liquibase.update("");
+                liquibase.tag("testTag");
+            }
+        );
+    }
 
-  @Test
-  void canValidate() {
-    runLiquibase("changelog.xml", (liquibase, connection) -> liquibase.validate());
-  }
+    @Test
+    void canValidate() {
+        runLiquibase("changelog.xml", (liquibase, connection) -> liquibase.validate());
+    }
 
-  @Test
-  void canListLocks() {
-    runLiquibase("changelog.xml", (liquibase, connection) -> liquibase.listLocks());
-  }
+    @Test
+    void canListLocks() {
+        runLiquibase("changelog.xml", (liquibase, connection) -> liquibase.listLocks());
+    }
 
-  @Test
-  void canSyncChangelog() {
-    // ERROR: Exception Primary Reason: Result set larger than one row
-    runLiquibase("changelog.xml", (liquibase, connection) -> liquibase.changeLogSync(""));
-  }
+    @Test
+    void canSyncChangelog() {
+        // ERROR: Exception Primary Reason: Result set larger than one row
+        runLiquibase("changelog.xml", (liquibase, connection) -> liquibase.changeLogSync(""));
+    }
 
-  @Test
-  void canForceReleaseLocks() {
-    runLiquibase("changelog.xml", (liquibase, connection) -> liquibase.forceReleaseLocks());
-  }
+    @Test
+    void canForceReleaseLocks() {
+        runLiquibase("changelog.xml", (liquibase, connection) -> liquibase.forceReleaseLocks());
+    }
 
-  @Test
-  void canReportStatus() {
-    runLiquibase(
-        "changelog.xml",
-        (liquibase, connection) -> liquibase.reportStatus(true, "", new NullWriter()));
-  }
+    @Test
+    void canReportStatus() {
+        runLiquibase(
+            "changelog.xml",
+            (liquibase, connection) -> liquibase.reportStatus(true, "", new NullWriter())
+        );
+    }
 
-  @Test
-  void canMarkChangeSetRan() {
-    runLiquibase("changelog.xml", (liquibase, connection) -> liquibase.markNextChangeSetRan(""));
-  }
+    @Test
+    void canMarkChangeSetRan() {
+        runLiquibase("changelog.xml", (liquibase, connection) -> liquibase.markNextChangeSetRan(""));
+    }
 
-  protected abstract void doWithConnection(ThrowingConsumer<Connection> callback);
+    protected abstract void doWithConnection(ThrowingConsumer<Connection> callback);
 
-  protected void runLiquibase(
-      String changelog, ThrowingBiConsumer<Liquibase, Connection> liquibaseAction) {
-    DatabaseFactory dbFactory = DatabaseFactory.getInstance();
-    ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor();
+    protected void runLiquibase(
+        String changelog, ThrowingBiConsumer<Liquibase, Connection> liquibaseAction
+    ) {
+        DatabaseFactory dbFactory = DatabaseFactory.getInstance();
+        ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor();
 
-    doWithConnection(
-        connection -> {
-          JdbcConnection jdbcConnection = new JdbcConnection(connection);
-          Database database = dbFactory.findCorrectDatabaseImplementation(jdbcConnection);
-          database.setLiquibaseSchemaName("default");
-          database.setLiquibaseCatalogName("default");
-          Liquibase liquibase = new Liquibase(changelog, resourceAccessor, database);
-          liquibaseAction.accept(liquibase, connection);
-        });
-  }
+        doWithConnection(
+            connection -> {
+                JdbcConnection jdbcConnection = new JdbcConnection(connection);
+                Database database = dbFactory.findCorrectDatabaseImplementation(jdbcConnection);
+                database.setLiquibaseSchemaName("default");
+                database.setLiquibaseCatalogName("default");
+                Liquibase liquibase = new Liquibase(changelog, resourceAccessor, database);
+                liquibaseAction.accept(liquibase, connection);
+            });
+    }
 
-  @FunctionalInterface
-  protected interface ThrowingBiConsumer<T1, T2> {
-    void accept(T1 t1, T2 t2) throws java.lang.Exception;
-  }
+    protected static void setConfig(LiquibaseClickHouseConfig config)
+        throws NoSuchFieldException, IllegalAccessException {
+        var f = ParamsLoader.class.getDeclaredField("liquibaseClickhouseProperties");
+        f.setAccessible(true);
+        f.set(null, config);
+    }
 
-  @FunctionalInterface
-  protected interface ThrowingConsumer<T1> {
-    void accept(T1 t1) throws java.lang.Exception;
-  }
+    @FunctionalInterface
+    protected interface ThrowingBiConsumer<T1, T2> {
+        void accept(T1 t1, T2 t2) throws java.lang.Exception;
+    }
+
+    @FunctionalInterface
+    protected interface ThrowingConsumer<T1> {
+        void accept(T1 t1) throws java.lang.Exception;
+    }
 }

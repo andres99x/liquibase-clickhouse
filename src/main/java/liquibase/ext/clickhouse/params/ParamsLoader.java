@@ -27,7 +27,6 @@ import java.util.HashSet;
 import java.util.InvalidPropertiesFormatException;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
@@ -43,15 +42,15 @@ public final class ParamsLoader {
 
     private static final Logger LOG = Scope.getCurrentScope().getLog(ParamsLoader.class);
 
-    private static final Supplier<String> CONF_FILE = () -> System.getProperty(
+    private static final String CONF_FILE = System.getProperty(
         "liquibase.clickhouse.configfile", "liquibaseClickhouse");
-    private static ClusterConfig liquibaseClickhouseProperties = null;
+    private static LiquibaseClickHouseConfig liquibaseClickhouseProperties = null;
 
-    private static Set<String> validProperties = new HashSet<>(
-        Arrays.asList("clusterName", "tableZooKeeperPathPrefix", "tableReplicaName"));
+    private static final Set<String> VALID_PROPERTIES = new HashSet<>(
+        Arrays.asList("clusterName", "tableZooKeeperPathPrefix"));
 
     private static StringBuilder appendWithComma(StringBuilder sb, String text) {
-        if (sb.length() > 0) {
+        if (!sb.isEmpty()) {
             sb.append(", ");
         }
         sb.append(text);
@@ -61,7 +60,7 @@ public final class ParamsLoader {
 
     private static String getMissingProperties(Set<String> properties) {
         StringBuilder missingProperties = new StringBuilder();
-        for (String validProperty: validProperties) {
+        for (String validProperty: VALID_PROPERTIES) {
             if (!properties.contains(validProperty)) {
                 appendWithComma(missingProperties, validProperty);
             }
@@ -74,17 +73,17 @@ public final class ParamsLoader {
         StringBuilder errMsg = new StringBuilder();
 
         for (String key: properties.keySet()) {
-            if (!validProperties.contains(key)) {
+            if (!VALID_PROPERTIES.contains(key)) {
                 appendWithComma(errMsg, "unknown property: ").append(key);
             }
         }
 
-        if (errMsg.length() > 0 || properties.size() != validProperties.size()) {
+        if (!errMsg.isEmpty() || properties.size() != VALID_PROPERTIES.size()) {
             appendWithComma(errMsg, "the missing properties should be defined: ");
             errMsg.append(getMissingProperties(properties.keySet()));
         }
 
-        if (errMsg.length() > 0) {
+        if (!errMsg.isEmpty()) {
             throw new InvalidPropertiesFormatException(errMsg.toString());
         }
     }
@@ -97,39 +96,46 @@ public final class ParamsLoader {
         return sw.toString();
     }
 
-    public static ClusterConfig getLiquibaseClickhouseProperties() {
-        return getLiquibaseClickhouseProperties(CONF_FILE.get());
-    }
 
-    public static ClusterConfig getLiquibaseClickhouseProperties(String configFile) {
+    public static LiquibaseClickHouseConfig getLiquibaseClickhouseProperties() {
         if (liquibaseClickhouseProperties != null) {
             return liquibaseClickhouseProperties;
         }
+        liquibaseClickhouseProperties = getLiquibaseClickhouseProperties(CONF_FILE);
+        return liquibaseClickhouseProperties;
+    }
 
+    public static LiquibaseClickHouseConfig getLiquibaseClickhouseProperties(String configFile) {
         Config conf = ConfigFactory.load(configFile);
         Map<String, String> params = new HashMap<>();
-        ClusterConfig result = null;
+        LiquibaseClickHouseConfig result;
 
         try {
-            for (Map.Entry<String, ConfigValue> s: conf.getConfig("cluster").entrySet()) {
-                params.put(s.getKey(), s.getValue().unwrapped().toString());
-            }
-
-            checkProperties(params);
-            result = new ClusterConfig(params.get("clusterName"), params.get("tableZooKeeperPathPrefix"),
-                params.get("tableReplicaName")
-            );
-
-            LOG.info(
-                "Cluster settings (" + configFile + ".conf) are found. Work in cluster replicated clickhouse mode.");
-        } catch (ConfigException.Missing e) {
+            conf.getConfig("cluster");
+        } catch (ConfigException.Missing cem) {
             LOG.info(
                 "Cluster settings (" + configFile + ".conf) are not defined. Work in single-instance clickhouse mode.");
             LOG.info("The following properties should be defined: " + getMissingProperties(new HashSet<>()));
+            return new StandaloneConfig();
+        }
+
+        for (Map.Entry<String, ConfigValue> s: conf.getConfig("cluster").entrySet()) {
+            params.put(s.getKey(), s.getValue().unwrapped().toString());
+        }
+
+        try {
+            checkProperties(params);
         } catch (InvalidPropertiesFormatException e) {
             LOG.severe(getStackTrace(e));
-            LOG.severe("Work in single-instance clickhouse mode.");
+            LOG.severe("Fallback to single-instance clickhouse mode.");
+            return new StandaloneConfig();
         }
+        result = new ClusterConfig(
+            params.get("clusterName"),
+            params.get("tableZooKeeperPathPrefix")
+        );
+        LOG.info(
+            "Cluster settings (" + configFile + ".conf) are found. Work in cluster replicated clickhouse mode.");
 
         return result;
     }

@@ -17,16 +17,20 @@
  * limitations under the License.
  * #L%
  */
-package liquibase.ext.clickhouse.params;
+package liquibase.ext.clickhouse.sqlgenerator;
 
-public record ClusterConfig(
-    String clusterName,
-    String tableZooKeeperPathPrefix
-) implements LiquibaseClickHouseConfig {
+import liquibase.ext.clickhouse.params.ClusterConfig;
+import liquibase.ext.clickhouse.params.StandaloneConfig;
 
+public class OnClusterTemplate extends LiquibaseSqlTemplate<String> {
 
     @Override
-    public <T> T accept(LiquibaseConfigVisitor<T> visitor) {
-        return visitor.visit(this);
+    public String visit(StandaloneConfig standaloneConfig) {
+        return " ";
+    }
+
+    @Override
+    public String visit(ClusterConfig clusterConfig) {
+        return String.format("ON CLUSTER '%s' ", clusterConfig.clusterName());
     }
 }

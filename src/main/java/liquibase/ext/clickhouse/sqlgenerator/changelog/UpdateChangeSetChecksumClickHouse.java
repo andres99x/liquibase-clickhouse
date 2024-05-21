@@ -23,7 +23,12 @@ import static liquibase.ext.clickhouse.sqlgenerator.changelog.ChangelogColumns.A
 import static liquibase.ext.clickhouse.sqlgenerator.changelog.ChangelogColumns.FILENAME;
 import static liquibase.ext.clickhouse.sqlgenerator.changelog.ChangelogColumns.MD5SUM;
 
+import java.util.EnumMap;
+
 import liquibase.ext.clickhouse.database.ClickHouseDatabase;
+import liquibase.ext.clickhouse.params.ParamsLoader;
+import liquibase.ext.clickhouse.sqlgenerator.SqlGeneratorUtil;
+import liquibase.ext.clickhouse.sqlgenerator.changelog.template.UpsertTemplate;
 
 import liquibase.ChecksumVersion;
 import liquibase.changelog.ChangeSet;
@@ -50,18 +55,14 @@ public class UpdateChangeSetChecksumClickHouse extends UpdateChangeSetChecksumGe
       UpdateChangeSetChecksumStatement statement,
       Database database,
       SqlGeneratorChain sqlGeneratorChain) {
+      ChangeSet changeSet = statement.getChangeSet();
+      var config = ParamsLoader.getLiquibaseClickhouseProperties();
 
-    ChangeSet changeSet = statement.getChangeSet();
-
-    return new Sql[] {
-      ChangelogEntries.updateStatement(
-          database,
-          changeSet.getId(),
-          map -> {
-            map.put(MD5SUM, changeSet.generateCheckSum(ChecksumVersion.latest()).toString());
-            map.put(AUTHOR, changeSet.getAuthor());
-            map.put(FILENAME, changeSet.getFilePath());
-          })
-    };
+      var map = new EnumMap<>(ChangelogColumns.class);
+      map.put(MD5SUM, changeSet.generateCheckSum(ChecksumVersion.latest()).toString());
+      map.put(AUTHOR, changeSet.getAuthor());
+      map.put(FILENAME, changeSet.getFilePath());
+      var query = config.accept(new UpsertTemplate(database, map, changeSet.getId()));
+      return SqlGeneratorUtil.generateSql(database, query);
   }
 }

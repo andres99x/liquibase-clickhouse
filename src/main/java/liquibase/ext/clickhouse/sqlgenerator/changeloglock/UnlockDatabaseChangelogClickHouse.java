@@ -20,7 +20,9 @@
 package liquibase.ext.clickhouse.sqlgenerator.changeloglock;
 
 import liquibase.ext.clickhouse.database.ClickHouseDatabase;
+import liquibase.ext.clickhouse.params.ParamsLoader;
 import liquibase.ext.clickhouse.sqlgenerator.SqlGeneratorUtil;
+import liquibase.ext.clickhouse.sqlgenerator.changeloglock.template.UnlockTemplate;
 
 import liquibase.database.Database;
 import liquibase.sql.Sql;
@@ -30,27 +32,25 @@ import liquibase.statement.core.UnlockDatabaseChangeLogStatement;
 
 public class UnlockDatabaseChangelogClickHouse extends UnlockDatabaseChangeLogGenerator {
 
-  @Override
-  public int getPriority() {
-    return PRIORITY_DATABASE;
-  }
+    @Override
+    public int getPriority() {
+        return PRIORITY_DATABASE;
+    }
 
-  @Override
-  public boolean supports(UnlockDatabaseChangeLogStatement statement, Database database) {
-    return database instanceof ClickHouseDatabase;
-  }
+    @Override
+    public boolean supports(UnlockDatabaseChangeLogStatement statement, Database database) {
+        return database instanceof ClickHouseDatabase;
+    }
 
-  @Override
-  public Sql[] generateSql(
-      UnlockDatabaseChangeLogStatement statement,
-      Database database,
-      SqlGeneratorChain sqlGeneratorChain) {
-    String unlockQuery =
-        String.format(
-            "INSERT INTO `%s`.%s (ID, LOCKED, LOCKEDBY, LOCKGRANTED, SIGN) "
-                + "VALUES (1, 1, null, null, -1)",
-            database.getLiquibaseCatalogName(), database.getDatabaseChangeLogLockTableName());
+    @Override
+    public Sql[] generateSql(
+        UnlockDatabaseChangeLogStatement statement,
+        Database database,
+        SqlGeneratorChain sqlGeneratorChain
+    ) {
+        var config = ParamsLoader.getLiquibaseClickhouseProperties();
+        String unlockQuery = config.accept(new UnlockTemplate(database));
 
-    return SqlGeneratorUtil.generateSql(database, unlockQuery);
-  }
+        return SqlGeneratorUtil.generateSql(database, unlockQuery);
+    }
 }

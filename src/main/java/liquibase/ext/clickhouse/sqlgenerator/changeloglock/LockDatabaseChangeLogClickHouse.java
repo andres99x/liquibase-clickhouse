@@ -20,7 +20,9 @@
 package liquibase.ext.clickhouse.sqlgenerator.changeloglock;
 
 import liquibase.ext.clickhouse.database.ClickHouseDatabase;
+import liquibase.ext.clickhouse.params.ParamsLoader;
 import liquibase.ext.clickhouse.sqlgenerator.SqlGeneratorUtil;
+import liquibase.ext.clickhouse.sqlgenerator.changeloglock.template.LockTemplate;
 
 import liquibase.database.Database;
 import liquibase.sql.Sql;
@@ -30,36 +32,29 @@ import liquibase.statement.core.LockDatabaseChangeLogStatement;
 
 public class LockDatabaseChangeLogClickHouse extends LockDatabaseChangeLogGenerator {
 
-  public LockDatabaseChangeLogClickHouse() {
-    super();
-  }
+    public LockDatabaseChangeLogClickHouse() {
+        super();
+    }
 
-  @Override
-  public int getPriority() {
-    return PRIORITY_DATABASE;
-  }
+    @Override
+    public int getPriority() {
+        return PRIORITY_DATABASE;
+    }
 
-  @Override
-  public boolean supports(LockDatabaseChangeLogStatement statement, Database database) {
-    return database instanceof ClickHouseDatabase;
-  }
+    @Override
+    public boolean supports(LockDatabaseChangeLogStatement statement, Database database) {
+        return database instanceof ClickHouseDatabase;
+    }
 
-  @Override
-  public Sql[] generateSql(
-      LockDatabaseChangeLogStatement statement,
-      Database database,
-      SqlGeneratorChain sqlGeneratorChain) {
-
-    String host = String.format("%s %s (%s)", hostname, hostDescription, hostaddress);
-    String lockQuery =
-        String.format(
-            "INSERT INTO `%s`.%s (ID, LOCKED, LOCKEDBY, LOCKGRANTED, SIGN) "
-                + "VALUES (1, 1, '%s', %s, 1)",
-            database.getLiquibaseCatalogName(),
-            database.getDatabaseChangeLogLockTableName(),
-            host,
-            ClickHouseDatabase.CURRENT_DATE_TIME_FUNCTION);
-
-    return SqlGeneratorUtil.generateSql(database, lockQuery);
-  }
+    @Override
+    public Sql[] generateSql(
+        LockDatabaseChangeLogStatement statement,
+        Database database,
+        SqlGeneratorChain sqlGeneratorChain
+    ) {
+        var config = ParamsLoader.getLiquibaseClickhouseProperties();
+        String host = String.format("%s %s (%s)", hostname, hostDescription, hostaddress);
+        String lockQuery = config.accept(new LockTemplate(database, host));
+        return SqlGeneratorUtil.generateSql(database, lockQuery);
+    }
 }

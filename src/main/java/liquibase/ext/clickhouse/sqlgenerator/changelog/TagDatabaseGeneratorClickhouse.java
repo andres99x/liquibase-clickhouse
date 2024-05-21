@@ -19,10 +19,15 @@
  */
 package liquibase.ext.clickhouse.sqlgenerator.changelog;
 
+import java.util.EnumMap;
+
 import liquibase.ext.clickhouse.database.ClickHouseDatabase;
+import liquibase.ext.clickhouse.params.LiquibaseClickHouseConfig;
+import liquibase.ext.clickhouse.params.ParamsLoader;
+import liquibase.ext.clickhouse.sqlgenerator.SqlGeneratorUtil;
+import liquibase.ext.clickhouse.sqlgenerator.changelog.template.UpsertTemplate;
 
 import liquibase.database.Database;
-import liquibase.datatype.DataTypeFactory;
 import liquibase.sql.Sql;
 import liquibase.sqlgenerator.SqlGeneratorChain;
 import liquibase.sqlgenerator.core.TagDatabaseGenerator;
@@ -42,19 +47,16 @@ public class TagDatabaseGeneratorClickhouse extends TagDatabaseGenerator {
   @Override
   public Sql[] generateSql(
       TagDatabaseStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
-    String tagEscaped =
-        DataTypeFactory.getInstance()
-            .fromObject(statement.getTag(), database)
-            .objectToSql(statement.getTag(), database);
-
-    var maxIDSubQuery =
-        String.format(
-            "(SELECT ID FROM %s.%s FINAL LIMIT 1)",
-            database.getLiquibaseCatalogName(),
-            database.getDatabaseChangeLogTableName());
-    return new Sql[] {
-      ChangelogEntries.updateStatement(
-          database, maxIDSubQuery, it -> it.put(ChangelogColumns.TAG, tagEscaped))
-    };
+      LiquibaseClickHouseConfig config = ParamsLoader.getLiquibaseClickhouseProperties();
+      var maxIDSubQuery =
+          String.format(
+              "(SELECT ID FROM %s.%s FINAL LIMIT 1)",
+              database.getLiquibaseCatalogName(),
+              database.getDatabaseChangeLogTableName()
+          );
+      var replacements = new EnumMap<>(ChangelogColumns.class);
+      replacements.put(ChangelogColumns.TAG, statement.getTag());
+      var query = config.accept(new UpsertTemplate(database, replacements, maxIDSubQuery));
+      return SqlGeneratorUtil.generateSql(database, query);
   }
 }

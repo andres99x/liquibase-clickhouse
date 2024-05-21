@@ -19,27 +19,11 @@
  */
 package liquibase.ext.clickhouse.sqlgenerator.changelog;
 
-import static liquibase.ext.clickhouse.sqlgenerator.changelog.ChangelogColumns.AUTHOR;
-import static liquibase.ext.clickhouse.sqlgenerator.changelog.ChangelogColumns.COMMENTS;
-import static liquibase.ext.clickhouse.sqlgenerator.changelog.ChangelogColumns.CONTEXTS;
-import static liquibase.ext.clickhouse.sqlgenerator.changelog.ChangelogColumns.DATEEXECUTED;
-import static liquibase.ext.clickhouse.sqlgenerator.changelog.ChangelogColumns.DEPLOYMENT_ID;
-import static liquibase.ext.clickhouse.sqlgenerator.changelog.ChangelogColumns.DESCRIPTION;
-import static liquibase.ext.clickhouse.sqlgenerator.changelog.ChangelogColumns.EXECTYPE;
-import static liquibase.ext.clickhouse.sqlgenerator.changelog.ChangelogColumns.FILENAME;
-import static liquibase.ext.clickhouse.sqlgenerator.changelog.ChangelogColumns.ID;
-import static liquibase.ext.clickhouse.sqlgenerator.changelog.ChangelogColumns.LABELS;
-import static liquibase.ext.clickhouse.sqlgenerator.changelog.ChangelogColumns.LIQUIBASE;
-import static liquibase.ext.clickhouse.sqlgenerator.changelog.ChangelogColumns.MD5SUM;
-import static liquibase.ext.clickhouse.sqlgenerator.changelog.ChangelogColumns.ORDEREXECUTED;
-import static liquibase.ext.clickhouse.sqlgenerator.changelog.ChangelogColumns.TAG;
-
-import java.util.Locale;
-
 import liquibase.ext.clickhouse.database.ClickHouseDatabase;
-import liquibase.ext.clickhouse.params.ClusterConfig;
+import liquibase.ext.clickhouse.params.LiquibaseClickHouseConfig;
 import liquibase.ext.clickhouse.params.ParamsLoader;
 import liquibase.ext.clickhouse.sqlgenerator.SqlGeneratorUtil;
+import liquibase.ext.clickhouse.sqlgenerator.changelog.template.CreateDatabaseChangeLogTableTemplate;
 
 import liquibase.database.Database;
 import liquibase.sql.Sql;
@@ -49,73 +33,24 @@ import liquibase.statement.core.CreateDatabaseChangeLogTableStatement;
 
 public class CreateDatabaseChangeLogTableClickHouse extends CreateDatabaseChangeLogTableGenerator {
 
-  @Override
-  public int getPriority() {
-    return PRIORITY_DATABASE;
-  }
-
-  @Override
-  public boolean supports(CreateDatabaseChangeLogTableStatement statement, Database database) {
-    return database instanceof ClickHouseDatabase;
-  }
-
-  @Override
-  public Sql[] generateSql(
-      CreateDatabaseChangeLogTableStatement statement,
-      Database database,
-      SqlGeneratorChain sqlGeneratorChain) {
-    ClusterConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
-    String tableName = database.getDatabaseChangeLogTableName();
-
-    String createTableQuery =
-        String.format(
-            "CREATE TABLE IF NOT EXISTS `%s`.%s "
-                + SqlGeneratorUtil.generateSqlOnClusterClause(properties)
-                + "("
-                + ID
-                + " String,"
-                + AUTHOR
-                + " String,"
-                + FILENAME
-                + " String,"
-                + DATEEXECUTED
-                + " DateTime64,"
-                + ORDEREXECUTED
-                + " UInt64,"
-                + EXECTYPE
-                + " String,"
-                + MD5SUM
-                + " Nullable(String),"
-                + DESCRIPTION
-                + " Nullable(String),"
-                + COMMENTS
-                + " Nullable(String),"
-                + TAG
-                + " Nullable(String),"
-                + LIQUIBASE
-                + " Nullable(String),"
-                + CONTEXTS
-                + " Nullable(String),"
-                + LABELS
-                + " Nullable(String),"
-                + DEPLOYMENT_ID
-                + " Nullable(String)) "
-                + generateSqlEngineClauseReplacing(properties, tableName),
-            database.getLiquibaseCatalogName(),
-            tableName);
-
-    return SqlGeneratorUtil.generateSql(database, createTableQuery);
-  }
-
-  private static String generateSqlEngineClauseReplacing(
-      ClusterConfig properties, String tableName) {
-    if (properties != null) {
-      return String.format(
-          "ENGINE ReplicatedReplacingMergeTree('%s','%s') ORDER BY ID",
-          properties.getTableZooKeeperPathPrefix() + tableName.toLowerCase(Locale.ROOT),
-          properties.getTableReplicaName());
-    } else {
-      return String.format("ENGINE ReplacingMergeTree() ORDER BY ID");
+    @Override
+    public int getPriority() {
+        return PRIORITY_DATABASE;
     }
-  }
+
+    @Override
+    public boolean supports(CreateDatabaseChangeLogTableStatement statement, Database database) {
+        return database instanceof ClickHouseDatabase;
+    }
+
+    @Override
+    public Sql[] generateSql(
+        CreateDatabaseChangeLogTableStatement statement,
+        Database database,
+        SqlGeneratorChain sqlGeneratorChain
+    ) {
+        LiquibaseClickHouseConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
+        String createTableQuery = properties.accept(new CreateDatabaseChangeLogTableTemplate(database));
+        return SqlGeneratorUtil.generateSql(database, createTableQuery);
+    }
 }

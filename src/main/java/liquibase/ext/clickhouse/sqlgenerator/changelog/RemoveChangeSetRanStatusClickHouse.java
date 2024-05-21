@@ -20,11 +20,11 @@
 package liquibase.ext.clickhouse.sqlgenerator.changelog;
 
 import liquibase.ext.clickhouse.database.ClickHouseDatabase;
-import liquibase.ext.clickhouse.params.ClusterConfig;
+import liquibase.ext.clickhouse.params.LiquibaseClickHouseConfig;
 import liquibase.ext.clickhouse.params.ParamsLoader;
 import liquibase.ext.clickhouse.sqlgenerator.SqlGeneratorUtil;
+import liquibase.ext.clickhouse.sqlgenerator.changelog.template.RemoveChangeSetRanStatusTemplate;
 
-import liquibase.changelog.ChangeSet;
 import liquibase.database.Database;
 import liquibase.sql.Sql;
 import liquibase.sqlgenerator.SqlGeneratorChain;
@@ -48,19 +48,8 @@ public class RemoveChangeSetRanStatusClickHouse extends RemoveChangeSetRanStatus
       RemoveChangeSetRanStatusStatement statement,
       Database database,
       SqlGeneratorChain sqlGeneratorChain) {
-    ClusterConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
-
-    ChangeSet changeSet = statement.getChangeSet();
-    String unlockQuery =
-        String.format(
-            "DELETE FROM `%s`.%s "
-                + SqlGeneratorUtil.generateSqlOnClusterClause(properties)
-                + " WHERE ID = '%s' AND AUTHOR = '%s' AND FILENAME = '%s' SETTINGS mutations_sync = 2",
-            database.getLiquibaseCatalogName(),
-            database.getDatabaseChangeLogTableName(),
-            changeSet.getId(),
-            changeSet.getAuthor(),
-            changeSet.getFilePath());
-    return SqlGeneratorUtil.generateSql(database, unlockQuery);
+    LiquibaseClickHouseConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
+    String removeChangeSet = properties.accept(new RemoveChangeSetRanStatusTemplate(database, statement));
+    return SqlGeneratorUtil.generateSql(database, removeChangeSet);
   }
 }

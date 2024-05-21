@@ -19,58 +19,31 @@
  */
 package liquibase.ext.clickhouse.sqlgenerator.changeloglock;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import liquibase.change.ColumnConfig;
 import liquibase.database.Database;
+import liquibase.ext.clickhouse.params.ParamsLoader;
+import liquibase.ext.clickhouse.sqlgenerator.SqlGeneratorUtil;
+import liquibase.ext.clickhouse.sqlgenerator.changeloglock.template.SelectLockTemplate;
 import liquibase.sql.Sql;
-import liquibase.sql.UnparsedSql;
 import liquibase.sqlgenerator.SqlGeneratorChain;
 import liquibase.sqlgenerator.core.SelectFromDatabaseChangeLogLockGenerator;
 import liquibase.statement.core.SelectFromDatabaseChangeLogLockStatement;
-import org.apache.commons.lang3.StringUtils;
 
 public class SelectFromDatabaseChangeLogLockGeneratorClickHouse
     extends SelectFromDatabaseChangeLogLockGenerator {
 
-  @Override
-  public int getPriority() {
-    return PRIORITY_DATABASE;
-  }
-
-  @Override
-  public Sql[] generateSql(
-      SelectFromDatabaseChangeLogLockStatement statement,
-      final Database database,
-      SqlGeneratorChain sqlGeneratorChain) {
-
-    String selector =
-        Arrays.stream(statement.getColumnsToSelect())
-            .map(ColumnConfig::getName)
-            .map(it -> it.equals("LOCKED") ? "max(LOCKED)" : it)
-            .collect(Collectors.joining(", "));
-    String groupBy = getGroupBy(selector);
-    String query =
-        String.format(
-            "SELECT %s FROM %s.%s FINAL WHERE ID = 1 %s;",
-            selector,
-            database.getLiquibaseCatalogName(),
-            database.getDatabaseChangeLogLockTableName(),
-            groupBy);
-
-    return new Sql[] {new UnparsedSql(query)};
-  }
-
-  private String getGroupBy(String selector) {
-    String args =
-        Stream.of(selector.split(", "))
-            .filter(it -> !it.equals("max(LOCKED)"))
-            .collect(Collectors.joining(", "));
-    if (StringUtils.isBlank(args)) {
-      return "";
+    @Override
+    public int getPriority() {
+        return PRIORITY_DATABASE;
     }
-    return "GROUP BY " + args;
-  }
+
+    @Override
+    public Sql[] generateSql(
+        SelectFromDatabaseChangeLogLockStatement statement,
+        final Database database,
+        SqlGeneratorChain sqlGeneratorChain
+    ) {
+        var config = ParamsLoader.getLiquibaseClickhouseProperties();
+        String query = config.accept(new SelectLockTemplate(database, statement));
+        return SqlGeneratorUtil.generateSql(database, query);
+    }
 }

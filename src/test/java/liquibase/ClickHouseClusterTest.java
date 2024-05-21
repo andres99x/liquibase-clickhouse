@@ -19,8 +19,14 @@
  */
 package liquibase;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import com.clickhouse.jdbc.ClickHouseDriver;
+import liquibase.ext.clickhouse.params.ClusterConfig;
+import org.intellij.lang.annotations.Language;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.DockerComposeContainer;
 
 import java.io.File;
 import java.net.URI;
@@ -31,21 +37,18 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
-import com.clickhouse.jdbc.ClickHouseDriver;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.DockerComposeContainer;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class ClickHouseClusterTest extends BaseClickHouseTest {
 
     private static final DockerComposeContainer<?> container = withClickHouseCluster();
 
     @BeforeAll
-    static void config() {
-        System.setProperty("liquibase.clickhouse.configfile", "clusterTestLiquibase");
+    static void config() throws Exception {
+        setConfig(new ClusterConfig("default", "/liquibase"));
     }
 
     @Override
@@ -72,15 +75,28 @@ public class ClickHouseClusterTest extends BaseClickHouseTest {
 
     @Test
     void canPerformCustomMigration() {
+        @Language("ClickHouse")
+        String checkStatement = "select count(*) from DataByRowDist where item = 'custom'";
         runLiquibase(
             "changelog-cluster.xml",
             (liquibase, connection) -> {
                 liquibase.update("");
                 try (Statement stmt = connection.createStatement()) {
-                    stmt.execute("select count(*) from DataByRowDist where item = 'custom'");
+                    stmt.execute(checkStatement);
                     var rs = stmt.getResultSet();
                     rs.next();
-                    assertEquals(1, rs.getInt(1));
+                    try {
+                        assertEquals(1, rs.getInt(1));
+                    } catch (AssertionError e) {
+                        // poor man's backoff
+                        TimeUnit.SECONDS.sleep(5);
+                        try (Statement stmt2 = connection.createStatement()) {
+                            stmt2.execute(checkStatement);
+                            var rs2 = stmt2.getResultSet();
+                            rs2.next();
+                            assertEquals(1, rs2.getInt(1));
+                        }
+                    }
                 }
             }
         );
@@ -123,7 +139,6 @@ public class ClickHouseClusterTest extends BaseClickHouseTest {
 
     @AfterAll
     static void stop() {
-        System.clearProperty("liquibase.clickhouse.configfile");
         container.close();
     }
 

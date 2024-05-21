@@ -17,16 +17,27 @@
  * limitations under the License.
  * #L%
  */
-package liquibase.ext.clickhouse.params;
+package liquibase.ext.clickhouse.sqlgenerator;
 
-public record ClusterConfig(
-    String clusterName,
-    String tableZooKeeperPathPrefix
-) implements LiquibaseClickHouseConfig {
+import liquibase.ext.clickhouse.params.ClusterConfig;
+import liquibase.ext.clickhouse.params.LiquibaseClickHouseConfig;
+import liquibase.ext.clickhouse.params.LiquibaseConfigVisitor;
+import liquibase.ext.clickhouse.params.StandaloneConfig;
 
+public abstract class LiquibaseSqlTemplate<T> implements LiquibaseConfigVisitor<T> {
 
     @Override
-    public <T> T accept(LiquibaseConfigVisitor<T> visitor) {
-        return visitor.visit(this);
+    public T visit(ClusterConfig object) {
+       return visitDefault(object);
     }
+
+    @Override
+    public T visit(StandaloneConfig object) {
+        return visitDefault(object);
+    }
+
+    public T visitDefault(LiquibaseClickHouseConfig config) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
 }

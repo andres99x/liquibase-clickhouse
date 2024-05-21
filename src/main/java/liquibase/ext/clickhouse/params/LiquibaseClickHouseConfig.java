@@ -19,14 +19,6 @@
  */
 package liquibase.ext.clickhouse.params;
 
-public record ClusterConfig(
-    String clusterName,
-    String tableZooKeeperPathPrefix
-) implements LiquibaseClickHouseConfig {
-
-
-    @Override
-    public <T> T accept(LiquibaseConfigVisitor<T> visitor) {
-        return visitor.visit(this);
-    }
+public sealed interface LiquibaseClickHouseConfig permits ClusterConfig, StandaloneConfig {
+    <T> T accept(LiquibaseConfigVisitor<T> visitor);
 }
