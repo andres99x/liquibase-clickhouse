@@ -35,32 +35,28 @@ import liquibase.statement.core.InitializeDatabaseChangeLogLockTableStatement;
 public class InitializeDatabaseChangeLogLockClickHouse
     extends InitializeDatabaseChangeLogLockTableGenerator {
 
-    @Override
-    public int getPriority() {
-        return PRIORITY_DATABASE;
-    }
+  @Override
+  public int getPriority() {
+    return PRIORITY_DATABASE;
+  }
 
-    @Override
-    public boolean supports(
-        InitializeDatabaseChangeLogLockTableStatement statement, Database database
-    ) {
-        return database instanceof ClickHouseDatabase;
-    }
+  @Override
+  public boolean supports(
+      InitializeDatabaseChangeLogLockTableStatement statement, Database database) {
+    return database instanceof ClickHouseDatabase;
+  }
 
-    @Override
-    public Sql[] generateSql(
-        InitializeDatabaseChangeLogLockTableStatement statement,
-        Database database,
-        SqlGeneratorChain sqlGeneratorChain
-    ) {
-        LiquibaseClickHouseConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
+  @Override
+  public Sql[] generateSql(
+      InitializeDatabaseChangeLogLockTableStatement statement,
+      Database database,
+      SqlGeneratorChain sqlGeneratorChain) {
+    LiquibaseClickHouseConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
 
-        String clearDatabaseQuery =
-            properties.accept(new TruncateTableTemplate(database));
+    String clearDatabaseQuery = properties.accept(new TruncateTableTemplate(database));
 
-        String initLockQuery =
-            properties.accept(new InitialLockRecordTemplate(database));
+    String initLockQuery = properties.accept(new InitialLockRecordTemplate(database));
 
-        return SqlGeneratorUtil.generateSql(database, clearDatabaseQuery, initLockQuery);
-    }
+    return SqlGeneratorUtil.generateSql(database, clearDatabaseQuery, initLockQuery);
+  }
 }

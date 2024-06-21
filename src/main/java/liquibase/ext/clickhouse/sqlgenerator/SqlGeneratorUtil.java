@@ -30,17 +30,16 @@ import liquibase.statement.core.RawSqlStatement;
 
 public final class SqlGeneratorUtil {
 
-    private SqlGeneratorUtil() {
-    }
+  private SqlGeneratorUtil() { }
 
-    public static Sql[] generateSql(Database database, String... statements) {
-        SqlGeneratorFactory sqlGeneratorFactory = SqlGeneratorFactory.getInstance();
-        List<Sql> allSqlStatements = new ArrayList<>();
-        for (String statement: statements) {
-            RawSqlStatement rawSqlStatement = new RawSqlStatement(statement);
-            Sql[] perStatement = sqlGeneratorFactory.generateSql(rawSqlStatement, database);
-            allSqlStatements.addAll(Arrays.asList(perStatement));
-        }
-        return allSqlStatements.toArray(new Sql[0]);
+  public static Sql[] generateSql(Database database, String... statements) {
+    SqlGeneratorFactory sqlGeneratorFactory = SqlGeneratorFactory.getInstance();
+    List<Sql> allSqlStatements = new ArrayList<>();
+    for (String statement : statements) {
+      RawSqlStatement rawSqlStatement = new RawSqlStatement(statement);
+      Sql[] perStatement = sqlGeneratorFactory.generateSql(rawSqlStatement, database);
+      allSqlStatements.addAll(Arrays.asList(perStatement));
     }
+    return allSqlStatements.toArray(new Sql[0]);
+  }
 }

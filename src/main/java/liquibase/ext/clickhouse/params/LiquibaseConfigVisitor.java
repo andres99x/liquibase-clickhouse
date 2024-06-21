@@ -20,7 +20,7 @@
 package liquibase.ext.clickhouse.params;
 
 public interface LiquibaseConfigVisitor<T> {
-    T visit(StandaloneConfig standaloneConfig);
+  T visit(StandaloneConfig standaloneConfig);
 
-    T visit(ClusterConfig clusterConfig);
+  T visit(ClusterConfig clusterConfig);
 }

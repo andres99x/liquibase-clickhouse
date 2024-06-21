@@ -31,19 +31,18 @@ import liquibase.statement.core.SelectFromDatabaseChangeLogLockStatement;
 public class SelectFromDatabaseChangeLogLockGeneratorClickHouse
     extends SelectFromDatabaseChangeLogLockGenerator {
 
-    @Override
-    public int getPriority() {
-        return PRIORITY_DATABASE;
-    }
+  @Override
+  public int getPriority() {
+    return PRIORITY_DATABASE;
+  }
 
-    @Override
-    public Sql[] generateSql(
-        SelectFromDatabaseChangeLogLockStatement statement,
-        final Database database,
-        SqlGeneratorChain sqlGeneratorChain
-    ) {
-        var config = ParamsLoader.getLiquibaseClickhouseProperties();
-        String query = config.accept(new SelectLockTemplate(database, statement));
-        return SqlGeneratorUtil.generateSql(database, query);
-    }
+  @Override
+  public Sql[] generateSql(
+      SelectFromDatabaseChangeLogLockStatement statement,
+      final Database database,
+      SqlGeneratorChain sqlGeneratorChain) {
+    var config = ParamsLoader.getLiquibaseClickhouseProperties();
+    String query = config.accept(new SelectLockTemplate(database, statement));
+    return SqlGeneratorUtil.generateSql(database, query);
+  }
 }

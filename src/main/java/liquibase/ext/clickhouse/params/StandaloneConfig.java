@@ -20,8 +20,8 @@
 package liquibase.ext.clickhouse.params;
 
 public final class StandaloneConfig implements LiquibaseClickHouseConfig {
-    @Override
-    public <T> T accept(LiquibaseConfigVisitor<T> visitor) {
-        return visitor.visit(this);
-    }
+  @Override
+  public <T> T accept(LiquibaseConfigVisitor<T> visitor) {
+    return visitor.visit(this);
+  }
 }

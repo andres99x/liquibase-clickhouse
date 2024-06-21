@@ -37,106 +37,107 @@ import liquibase.logging.Logger;
 
 public final class ParamsLoader {
 
-    private ParamsLoader() {
+  private ParamsLoader() { }
+
+  private static final Logger LOG = Scope.getCurrentScope().getLog(ParamsLoader.class);
+
+  private static final String CONF_FILE =
+      System.getProperty("liquibase.clickhouse.configfile", "liquibaseClickhouse");
+  private static LiquibaseClickHouseConfig liquibaseClickhouseProperties = null;
+
+  private static final Set<String> VALID_PROPERTIES =
+      new HashSet<>(Arrays.asList("clusterName", "tableZooKeeperPathPrefix"));
+
+  private static StringBuilder appendWithComma(StringBuilder sb, String text) {
+    if (!sb.isEmpty()) {
+      sb.append(", ");
+    }
+    sb.append(text);
+
+    return sb;
+  }
+
+  private static String getMissingProperties(Set<String> properties) {
+    StringBuilder missingProperties = new StringBuilder();
+    for (String validProperty : VALID_PROPERTIES) {
+      if (!properties.contains(validProperty)) {
+        appendWithComma(missingProperties, validProperty);
+      }
     }
 
-    private static final Logger LOG = Scope.getCurrentScope().getLog(ParamsLoader.class);
+    return missingProperties.toString();
+  }
 
-    private static final String CONF_FILE = System.getProperty(
-        "liquibase.clickhouse.configfile", "liquibaseClickhouse");
-    private static LiquibaseClickHouseConfig liquibaseClickhouseProperties = null;
+  private static void checkProperties(Map<String, String> properties)
+      throws InvalidPropertiesFormatException {
+    StringBuilder errMsg = new StringBuilder();
 
-    private static final Set<String> VALID_PROPERTIES = new HashSet<>(
-        Arrays.asList("clusterName", "tableZooKeeperPathPrefix"));
-
-    private static StringBuilder appendWithComma(StringBuilder sb, String text) {
-        if (!sb.isEmpty()) {
-            sb.append(", ");
-        }
-        sb.append(text);
-
-        return sb;
+    for (String key : properties.keySet()) {
+      if (!VALID_PROPERTIES.contains(key)) {
+        appendWithComma(errMsg, "unknown property: ").append(key);
+      }
     }
 
-    private static String getMissingProperties(Set<String> properties) {
-        StringBuilder missingProperties = new StringBuilder();
-        for (String validProperty: VALID_PROPERTIES) {
-            if (!properties.contains(validProperty)) {
-                appendWithComma(missingProperties, validProperty);
-            }
-        }
-
-        return missingProperties.toString();
+    if (!errMsg.isEmpty() || properties.size() != VALID_PROPERTIES.size()) {
+      appendWithComma(errMsg, "the missing properties should be defined: ");
+      errMsg.append(getMissingProperties(properties.keySet()));
     }
 
-    private static void checkProperties(Map<String, String> properties) throws InvalidPropertiesFormatException {
-        StringBuilder errMsg = new StringBuilder();
+    if (!errMsg.isEmpty()) {
+      throw new InvalidPropertiesFormatException(errMsg.toString());
+    }
+  }
 
-        for (String key: properties.keySet()) {
-            if (!VALID_PROPERTIES.contains(key)) {
-                appendWithComma(errMsg, "unknown property: ").append(key);
-            }
-        }
+  private static String getStackTrace(Exception e) {
+    StringWriter sw = new StringWriter();
+    PrintWriter pw = new PrintWriter(sw);
+    e.printStackTrace(pw);
 
-        if (!errMsg.isEmpty() || properties.size() != VALID_PROPERTIES.size()) {
-            appendWithComma(errMsg, "the missing properties should be defined: ");
-            errMsg.append(getMissingProperties(properties.keySet()));
-        }
+    return sw.toString();
+  }
 
-        if (!errMsg.isEmpty()) {
-            throw new InvalidPropertiesFormatException(errMsg.toString());
-        }
+  public static LiquibaseClickHouseConfig getLiquibaseClickhouseProperties() {
+    if (liquibaseClickhouseProperties != null) {
+      return liquibaseClickhouseProperties;
+    }
+    liquibaseClickhouseProperties = getLiquibaseClickhouseProperties(CONF_FILE);
+    return liquibaseClickhouseProperties;
+  }
+
+  public static LiquibaseClickHouseConfig getLiquibaseClickhouseProperties(String configFile) {
+    Config conf = ConfigFactory.load(configFile);
+    Map<String, String> params = new HashMap<>();
+    LiquibaseClickHouseConfig result;
+
+    try {
+      conf.getConfig("cluster");
+    } catch (ConfigException.Missing cem) {
+      LOG.info(
+          "Cluster settings ("
+              + configFile
+              + ".conf) are not defined. Work in single-instance clickhouse mode.");
+      LOG.info(
+          "The following properties should be defined: " + getMissingProperties(new HashSet<>()));
+      return new StandaloneConfig();
     }
 
-    private static String getStackTrace(Exception e) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-
-        return sw.toString();
+    for (Map.Entry<String, ConfigValue> s : conf.getConfig("cluster").entrySet()) {
+      params.put(s.getKey(), s.getValue().unwrapped().toString());
     }
 
-
-    public static LiquibaseClickHouseConfig getLiquibaseClickhouseProperties() {
-        if (liquibaseClickhouseProperties != null) {
-            return liquibaseClickhouseProperties;
-        }
-        liquibaseClickhouseProperties = getLiquibaseClickhouseProperties(CONF_FILE);
-        return liquibaseClickhouseProperties;
+    try {
+      checkProperties(params);
+    } catch (InvalidPropertiesFormatException e) {
+      LOG.severe(getStackTrace(e));
+      LOG.severe("Fallback to single-instance clickhouse mode.");
+      return new StandaloneConfig();
     }
+    result = new ClusterConfig(params.get("clusterName"), params.get("tableZooKeeperPathPrefix"));
+    LOG.info(
+        "Cluster settings ("
+            + configFile
+            + ".conf) are found. Work in cluster replicated clickhouse mode.");
 
-    public static LiquibaseClickHouseConfig getLiquibaseClickhouseProperties(String configFile) {
-        Config conf = ConfigFactory.load(configFile);
-        Map<String, String> params = new HashMap<>();
-        LiquibaseClickHouseConfig result;
-
-        try {
-            conf.getConfig("cluster");
-        } catch (ConfigException.Missing cem) {
-            LOG.info(
-                "Cluster settings (" + configFile + ".conf) are not defined. Work in single-instance clickhouse mode.");
-            LOG.info("The following properties should be defined: " + getMissingProperties(new HashSet<>()));
-            return new StandaloneConfig();
-        }
-
-        for (Map.Entry<String, ConfigValue> s: conf.getConfig("cluster").entrySet()) {
-            params.put(s.getKey(), s.getValue().unwrapped().toString());
-        }
-
-        try {
-            checkProperties(params);
-        } catch (InvalidPropertiesFormatException e) {
-            LOG.severe(getStackTrace(e));
-            LOG.severe("Fallback to single-instance clickhouse mode.");
-            return new StandaloneConfig();
-        }
-        result = new ClusterConfig(
-            params.get("clusterName"),
-            params.get("tableZooKeeperPathPrefix")
-        );
-        LOG.info(
-            "Cluster settings (" + configFile + ".conf) are found. Work in cluster replicated clickhouse mode.");
-
-        return result;
-    }
+    return result;
+  }
 }

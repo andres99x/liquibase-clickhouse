@@ -26,18 +26,17 @@ import liquibase.ext.clickhouse.params.StandaloneConfig;
 
 public abstract class LiquibaseSqlTemplate<T> implements LiquibaseConfigVisitor<T> {
 
-    @Override
-    public T visit(ClusterConfig object) {
-       return visitDefault(object);
-    }
+  @Override
+  public T visit(ClusterConfig object) {
+    return visitDefault(object);
+  }
 
-    @Override
-    public T visit(StandaloneConfig object) {
-        return visitDefault(object);
-    }
+  @Override
+  public T visit(StandaloneConfig object) {
+    return visitDefault(object);
+  }
 
-    public T visitDefault(LiquibaseClickHouseConfig config) {
-        throw new UnsupportedOperationException("Not implemented");
-    }
-
+  public T visitDefault(LiquibaseClickHouseConfig config) {
+    throw new UnsupportedOperationException("Not implemented");
+  }
 }

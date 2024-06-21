@@ -47,16 +47,14 @@ public class TagDatabaseGeneratorClickhouse extends TagDatabaseGenerator {
   @Override
   public Sql[] generateSql(
       TagDatabaseStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
-      LiquibaseClickHouseConfig config = ParamsLoader.getLiquibaseClickhouseProperties();
-      var maxIDSubQuery =
-          String.format(
-              "(SELECT ID FROM %s.%s FINAL LIMIT 1)",
-              database.getLiquibaseCatalogName(),
-              database.getDatabaseChangeLogTableName()
-          );
-      var replacements = new EnumMap<>(ChangelogColumns.class);
-      replacements.put(ChangelogColumns.TAG, statement.getTag());
-      var query = config.accept(new UpsertTemplate(database, replacements, maxIDSubQuery));
-      return SqlGeneratorUtil.generateSql(database, query);
+    LiquibaseClickHouseConfig config = ParamsLoader.getLiquibaseClickhouseProperties();
+    var maxIDSubQuery =
+        String.format(
+            "(SELECT ID FROM %s.%s FINAL LIMIT 1)",
+            database.getLiquibaseCatalogName(), database.getDatabaseChangeLogTableName());
+    var replacements = new EnumMap<>(ChangelogColumns.class);
+    replacements.put(ChangelogColumns.TAG, statement.getTag());
+    var query = config.accept(new UpsertTemplate(database, replacements, maxIDSubQuery));
+    return SqlGeneratorUtil.generateSql(database, query);
   }
 }

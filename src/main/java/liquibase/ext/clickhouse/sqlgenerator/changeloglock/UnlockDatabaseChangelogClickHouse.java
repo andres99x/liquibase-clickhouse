@@ -32,25 +32,24 @@ import liquibase.statement.core.UnlockDatabaseChangeLogStatement;
 
 public class UnlockDatabaseChangelogClickHouse extends UnlockDatabaseChangeLogGenerator {
 
-    @Override
-    public int getPriority() {
-        return PRIORITY_DATABASE;
-    }
+  @Override
+  public int getPriority() {
+    return PRIORITY_DATABASE;
+  }
 
-    @Override
-    public boolean supports(UnlockDatabaseChangeLogStatement statement, Database database) {
-        return database instanceof ClickHouseDatabase;
-    }
+  @Override
+  public boolean supports(UnlockDatabaseChangeLogStatement statement, Database database) {
+    return database instanceof ClickHouseDatabase;
+  }
 
-    @Override
-    public Sql[] generateSql(
-        UnlockDatabaseChangeLogStatement statement,
-        Database database,
-        SqlGeneratorChain sqlGeneratorChain
-    ) {
-        var config = ParamsLoader.getLiquibaseClickhouseProperties();
-        String unlockQuery = config.accept(new UnlockTemplate(database));
+  @Override
+  public Sql[] generateSql(
+      UnlockDatabaseChangeLogStatement statement,
+      Database database,
+      SqlGeneratorChain sqlGeneratorChain) {
+    var config = ParamsLoader.getLiquibaseClickhouseProperties();
+    String unlockQuery = config.accept(new UnlockTemplate(database));
 
-        return SqlGeneratorUtil.generateSql(database, unlockQuery);
-    }
+    return SqlGeneratorUtil.generateSql(database, unlockQuery);
+  }
 }

@@ -34,61 +34,60 @@ import liquibase.datatype.DataTypeFactory;
 
 public class UpsertTemplate extends LiquibaseSqlTemplate<String> {
 
-    private static final DataTypeFactory DATA_TYPE_FACTORY = DataTypeFactory.getInstance();
+  private static final DataTypeFactory DATA_TYPE_FACTORY = DataTypeFactory.getInstance();
 
-    private final OnClusterTemplate onClusterTemplate = new OnClusterTemplate();
-    private final Database database;
-    private final Map<ChangelogColumns, Object> replacements;
-    private final String unescapedId;
+  private final OnClusterTemplate onClusterTemplate = new OnClusterTemplate();
+  private final Database database;
+  private final Map<ChangelogColumns, Object> replacements;
+  private final String unescapedId;
 
-    public UpsertTemplate(
-        Database database,
-        Map<ChangelogColumns, Object> replacements,
-        String unescapedId
-    ) {
-        this.database = database;
-        this.replacements = replacements;
-        this.unescapedId = unescapedId;
-    }
+  public UpsertTemplate(
+      Database database, Map<ChangelogColumns, Object> replacements, String unescapedId) {
+    this.database = database;
+    this.replacements = replacements;
+    this.unescapedId = unescapedId;
+  }
 
+  @Override
+  public String visit(ClusterConfig clusterConfig) {
+    String alteredColumns =
+        replacements.entrySet().stream()
+            .map(
+                entry ->
+                    String.format("%s = %s", entry.getKey(), escape(database, entry.getValue())))
+            .collect(Collectors.joining(", "));
+    String whereColumns = String.format("ID = %s", unescapedId);
 
-    @Override
-    public String visit(ClusterConfig clusterConfig) {
-        String alteredColumns = replacements.entrySet().stream()
-                .map(entry -> String.format("%s = %s", entry.getKey(),
-                    escape(database, entry.getValue())
-                ))
-                .collect(Collectors.joining(", "));
-        String whereColumns = String.format("ID = %s", unescapedId);
+    return String.format(
+        "ALTER TABLE %s.%s %s UPDATE %s WHERE %s",
+        database.getLiquibaseCatalogName(),
+        database.getDatabaseChangeLogTableName(),
+        clusterConfig.accept(onClusterTemplate),
+        alteredColumns,
+        whereColumns);
+  }
 
-        return String.format(
-            "ALTER TABLE %s.%s %s UPDATE %s WHERE %s",
-            database.getLiquibaseCatalogName(),
-            database.getDatabaseChangeLogTableName(),
-            clusterConfig.accept(onClusterTemplate),
-            alteredColumns,
-            whereColumns
-        );
-    }
+  @Override
+  public String visit(StandaloneConfig standaloneConfig) {
+    String selectedColumns =
+        Arrays.stream(ChangelogColumns.values())
+            .map(
+                it ->
+                    replacements.containsKey(it)
+                        ? escape(database, replacements.get(it))
+                        : it.name())
+            .collect(Collectors.joining(", "));
+    return String.format(
+        "INSERT INTO %s.%s SELECT %s from %s.%s final where ID = %s limit 1;",
+        database.getLiquibaseCatalogName(),
+        database.getDatabaseChangeLogTableName(),
+        selectedColumns,
+        database.getLiquibaseCatalogName(),
+        database.getDatabaseChangeLogTableName(),
+        unescapedId);
+  }
 
-    @Override
-    public String visit(StandaloneConfig standaloneConfig) {
-        String selectedColumns =
-            Arrays.stream(ChangelogColumns.values())
-                .map(it -> replacements.containsKey(it) ? escape(database, replacements.get(it)) : it.name())
-                .collect(Collectors.joining(", "));
-        return String.format(
-            "INSERT INTO %s.%s SELECT %s from %s.%s final where ID = %s limit 1;",
-            database.getLiquibaseCatalogName(),
-            database.getDatabaseChangeLogTableName(),
-            selectedColumns,
-            database.getLiquibaseCatalogName(),
-            database.getDatabaseChangeLogTableName(),
-            unescapedId
-        );
-    }
-
-    private String escape(Database database, Object value) {
-        return DATA_TYPE_FACTORY.fromObject(value, database).objectToSql(value, database);
-    }
+  private String escape(Database database, Object value) {
+    return DATA_TYPE_FACTORY.fromObject(value, database).objectToSql(value, database);
+  }
 }

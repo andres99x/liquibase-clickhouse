@@ -49,7 +49,8 @@ public class RemoveChangeSetRanStatusClickHouse extends RemoveChangeSetRanStatus
       Database database,
       SqlGeneratorChain sqlGeneratorChain) {
     LiquibaseClickHouseConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
-    String removeChangeSet = properties.accept(new RemoveChangeSetRanStatusTemplate(database, statement));
+    String removeChangeSet =
+        properties.accept(new RemoveChangeSetRanStatusTemplate(database, statement));
     return SqlGeneratorUtil.generateSql(database, removeChangeSet);
   }
 }

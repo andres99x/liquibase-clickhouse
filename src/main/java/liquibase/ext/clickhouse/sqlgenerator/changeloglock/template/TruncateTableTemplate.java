@@ -27,21 +27,20 @@ import liquibase.database.Database;
 
 public class TruncateTableTemplate extends LiquibaseSqlTemplate<String> {
 
-    private final Database database;
-    private final OnClusterTemplate onClusterTemplate;
+  private final Database database;
+  private final OnClusterTemplate onClusterTemplate;
 
-    public TruncateTableTemplate(Database database) {
-        this.database = database;
-        this.onClusterTemplate = new OnClusterTemplate();
-    }
+  public TruncateTableTemplate(Database database) {
+    this.database = database;
+    this.onClusterTemplate = new OnClusterTemplate();
+  }
 
-    @Override
-    public String visitDefault(LiquibaseClickHouseConfig config) {
-        return String.format(
-            "TRUNCATE TABLE %s.%s %s",
-            database.getLiquibaseCatalogName(),
-            database.getDatabaseChangeLogLockTableName(),
-            config.accept(onClusterTemplate)
-        );
-    }
+  @Override
+  public String visitDefault(LiquibaseClickHouseConfig config) {
+    return String.format(
+        "TRUNCATE TABLE %s.%s %s",
+        database.getLiquibaseCatalogName(),
+        database.getDatabaseChangeLogLockTableName(),
+        config.accept(onClusterTemplate));
+  }
 }

@@ -55,14 +55,14 @@ public class UpdateChangeSetChecksumClickHouse extends UpdateChangeSetChecksumGe
       UpdateChangeSetChecksumStatement statement,
       Database database,
       SqlGeneratorChain sqlGeneratorChain) {
-      ChangeSet changeSet = statement.getChangeSet();
-      var config = ParamsLoader.getLiquibaseClickhouseProperties();
+    ChangeSet changeSet = statement.getChangeSet();
+    var config = ParamsLoader.getLiquibaseClickhouseProperties();
 
-      var map = new EnumMap<>(ChangelogColumns.class);
-      map.put(MD5SUM, changeSet.generateCheckSum(ChecksumVersion.latest()).toString());
-      map.put(AUTHOR, changeSet.getAuthor());
-      map.put(FILENAME, changeSet.getFilePath());
-      var query = config.accept(new UpsertTemplate(database, map, changeSet.getId()));
-      return SqlGeneratorUtil.generateSql(database, query);
+    var map = new EnumMap<>(ChangelogColumns.class);
+    map.put(MD5SUM, changeSet.generateCheckSum(ChecksumVersion.latest()).toString());
+    map.put(AUTHOR, changeSet.getAuthor());
+    map.put(FILENAME, changeSet.getFilePath());
+    var query = config.accept(new UpsertTemplate(database, map, changeSet.getId()));
+    return SqlGeneratorUtil.generateSql(database, query);
   }
 }

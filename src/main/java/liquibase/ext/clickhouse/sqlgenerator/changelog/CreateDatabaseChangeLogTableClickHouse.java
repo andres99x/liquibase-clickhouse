@@ -33,24 +33,23 @@ import liquibase.statement.core.CreateDatabaseChangeLogTableStatement;
 
 public class CreateDatabaseChangeLogTableClickHouse extends CreateDatabaseChangeLogTableGenerator {
 
-    @Override
-    public int getPriority() {
-        return PRIORITY_DATABASE;
-    }
+  @Override
+  public int getPriority() {
+    return PRIORITY_DATABASE;
+  }
 
-    @Override
-    public boolean supports(CreateDatabaseChangeLogTableStatement statement, Database database) {
-        return database instanceof ClickHouseDatabase;
-    }
+  @Override
+  public boolean supports(CreateDatabaseChangeLogTableStatement statement, Database database) {
+    return database instanceof ClickHouseDatabase;
+  }
 
-    @Override
-    public Sql[] generateSql(
-        CreateDatabaseChangeLogTableStatement statement,
-        Database database,
-        SqlGeneratorChain sqlGeneratorChain
-    ) {
-        LiquibaseClickHouseConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
-        String createTableQuery = properties.accept(new CreateDatabaseChangeLogTableTemplate(database));
-        return SqlGeneratorUtil.generateSql(database, createTableQuery);
-    }
+  @Override
+  public Sql[] generateSql(
+      CreateDatabaseChangeLogTableStatement statement,
+      Database database,
+      SqlGeneratorChain sqlGeneratorChain) {
+    LiquibaseClickHouseConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
+    String createTableQuery = properties.accept(new CreateDatabaseChangeLogTableTemplate(database));
+    return SqlGeneratorUtil.generateSql(database, createTableQuery);
+  }
 }

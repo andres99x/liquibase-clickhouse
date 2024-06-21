@@ -27,28 +27,24 @@ import liquibase.database.Database;
 
 public class UnlockTemplate extends LiquibaseSqlTemplate<String> {
 
-    private final Database database;
+  private final Database database;
 
-    public UnlockTemplate(Database database) {
-        this.database = database;
-    }
+  public UnlockTemplate(Database database) {
+    this.database = database;
+  }
 
-    @Override
-    public String visit(ClusterConfig object) {
-        return String.format("INSERT INTO %s.%s (ID, LOCKED, LOCKEDBY, LOCKGRANTED)"
-                 + "VALUES (1, 0, null, null)",
-            database.getLiquibaseCatalogName(),
-            database.getDatabaseChangeLogLockTableName()
-        );
-    }
+  @Override
+  public String visit(ClusterConfig object) {
+    return String.format(
+        "INSERT INTO %s.%s (ID, LOCKED, LOCKEDBY, LOCKGRANTED)" + "VALUES (1, 0, null, null)",
+        database.getLiquibaseCatalogName(), database.getDatabaseChangeLogLockTableName());
+  }
 
-    @Override
-    public String visit(StandaloneConfig object) {
-        return String.format(
-            "INSERT INTO `%s`.%s (ID, LOCKED, LOCKEDBY, LOCKGRANTED, SIGN) "
-                + "VALUES (1, 1, null, null, -1)",
-            database.getLiquibaseCatalogName(),
-            database.getDatabaseChangeLogLockTableName()
-        );
-    }
+  @Override
+  public String visit(StandaloneConfig object) {
+    return String.format(
+        "INSERT INTO `%s`.%s (ID, LOCKED, LOCKEDBY, LOCKGRANTED, SIGN) "
+            + "VALUES (1, 1, null, null, -1)",
+        database.getLiquibaseCatalogName(), database.getDatabaseChangeLogLockTableName());
+  }
 }

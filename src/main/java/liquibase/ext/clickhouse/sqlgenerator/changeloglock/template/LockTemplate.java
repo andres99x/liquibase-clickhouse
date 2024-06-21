@@ -28,35 +28,32 @@ import liquibase.database.Database;
 
 public class LockTemplate extends LiquibaseSqlTemplate<String> {
 
-    private final Database database;
-    private final String lockingAgent;
+  private final Database database;
+  private final String lockingAgent;
 
-    public LockTemplate(Database database, String lockingAgent) {
-        this.database = database;
-        this.lockingAgent = lockingAgent;
-    }
+  public LockTemplate(Database database, String lockingAgent) {
+    this.database = database;
+    this.lockingAgent = lockingAgent;
+  }
 
-    @Override
-    public String visit(ClusterConfig object) {
-        return String.format(
-            "INSERT INTO `%s`.%s (ID, LOCKED, LOCKEDBY, LOCKGRANTED) "
-                + "VALUES (1, 1, '%s', %s)",
-            database.getLiquibaseCatalogName(),
-            database.getDatabaseChangeLogLockTableName(),
-            lockingAgent,
-            ClickHouseDatabase.CURRENT_DATE_TIME_FUNCTION
-        );
-    }
+  @Override
+  public String visit(ClusterConfig object) {
+    return String.format(
+        "INSERT INTO `%s`.%s (ID, LOCKED, LOCKEDBY, LOCKGRANTED) " + "VALUES (1, 1, '%s', %s)",
+        database.getLiquibaseCatalogName(),
+        database.getDatabaseChangeLogLockTableName(),
+        lockingAgent,
+        ClickHouseDatabase.CURRENT_DATE_TIME_FUNCTION);
+  }
 
-    @Override
-    public String visit(StandaloneConfig object) {
-        return String.format(
-            "INSERT INTO `%s`.%s (ID, LOCKED, LOCKEDBY, LOCKGRANTED, SIGN) "
-                + "VALUES (1, 1, '%s', %s, 1)",
-            database.getLiquibaseCatalogName(),
-            database.getDatabaseChangeLogLockTableName(),
-            lockingAgent,
-            ClickHouseDatabase.CURRENT_DATE_TIME_FUNCTION
-        );
-    }
+  @Override
+  public String visit(StandaloneConfig object) {
+    return String.format(
+        "INSERT INTO `%s`.%s (ID, LOCKED, LOCKEDBY, LOCKGRANTED, SIGN) "
+            + "VALUES (1, 1, '%s', %s, 1)",
+        database.getLiquibaseCatalogName(),
+        database.getDatabaseChangeLogLockTableName(),
+        lockingAgent,
+        ClickHouseDatabase.CURRENT_DATE_TIME_FUNCTION);
+  }
 }

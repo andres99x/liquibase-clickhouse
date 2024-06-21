@@ -34,27 +34,25 @@ import liquibase.statement.core.CreateDatabaseChangeLogLockTableStatement;
 public class CreateDatabaseChangeLogLockTableClickHouse
     extends CreateDatabaseChangeLogLockTableGenerator {
 
-    @Override
-    public int getPriority() {
-        return PRIORITY_DATABASE;
-    }
+  @Override
+  public int getPriority() {
+    return PRIORITY_DATABASE;
+  }
 
-    @Override
-    public boolean supports(CreateDatabaseChangeLogLockTableStatement statement, Database database) {
-        return database instanceof ClickHouseDatabase;
-    }
+  @Override
+  public boolean supports(CreateDatabaseChangeLogLockTableStatement statement, Database database) {
+    return database instanceof ClickHouseDatabase;
+  }
 
-    @Override
-    public Sql[] generateSql(
-        CreateDatabaseChangeLogLockTableStatement statement,
-        Database database,
-        SqlGeneratorChain sqlGeneratorChain
-    ) {
-        LiquibaseClickHouseConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
-        String createTableQuery = properties.accept(
-            new CreateDatabaseChangeLogLockTableTemplate(database)
-        );
+  @Override
+  public Sql[] generateSql(
+      CreateDatabaseChangeLogLockTableStatement statement,
+      Database database,
+      SqlGeneratorChain sqlGeneratorChain) {
+    LiquibaseClickHouseConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
+    String createTableQuery =
+        properties.accept(new CreateDatabaseChangeLogLockTableTemplate(database));
 
-        return SqlGeneratorUtil.generateSql(database, createTableQuery);
-    }
+    return SqlGeneratorUtil.generateSql(database, createTableQuery);
+  }
 }

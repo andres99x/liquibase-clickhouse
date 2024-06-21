@@ -24,13 +24,13 @@ import liquibase.ext.clickhouse.params.StandaloneConfig;
 
 public class OnClusterTemplate extends LiquibaseSqlTemplate<String> {
 
-    @Override
-    public String visit(StandaloneConfig standaloneConfig) {
-        return " ";
-    }
+  @Override
+  public String visit(StandaloneConfig standaloneConfig) {
+    return " ";
+  }
 
-    @Override
-    public String visit(ClusterConfig clusterConfig) {
-        return String.format("ON CLUSTER '%s' ", clusterConfig.clusterName());
-    }
+  @Override
+  public String visit(ClusterConfig clusterConfig) {
+    return String.format("ON CLUSTER '%s' ", clusterConfig.clusterName());
+  }
 }

@@ -11,7 +11,7 @@
 
     <name>Liquibase extension for ClickHouse</name>
     <description>A Liquibase extension for the ClickHouse database.</description>
-    <url>https://github.com/mediarithmics/liquibase-clickhouse</url>
+    <url>https://github.com/genestack/liquibase-clickhouse</url>
 
     <organization>
         <name>Genestack LTD</name>
@@ -35,13 +35,26 @@
             <organization>mediarithmics</organization>
         </developer>
     </developers>
+
     <contributors>
         <contributor>
             <email>viacheslav.pivovarov@genestack.com</email>
             <name>Viacheslav Pivovarov</name>
             <organization>Genestack</organization>
         </contributor>
+        <contributor>
+            <email>oleg.kunitsyn@genestack.com</email>
+            <name>Oleg Kunitsyn</name>
+            <organization>Genestack</organization>
+        </contributor>
     </contributors>
+
+    <scm>
+        <connection>scm:git:git:@github.com:genestack/liquibase-clickhouse.git</connection>
+        <developerConnection>scm:git:git:@github.com:genestack/liquibase-clickhouse.git</developerConnection>
+        <url>https://github.com/genestack/liquibase-clickhouse</url>
+        <tag>HEAD</tag>
+    </scm>
 
     <licenses>
         <license>
@@ -53,12 +66,12 @@
 
     <distributionManagement>
         <snapshotRepository>
-            <id>maven-snapshots</id>
-            <url>https://nexus.devops.gs.team/repository/maven-snapshots</url>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
         <repository>
-            <id>maven-group</id>
-            <url>https://nexus.devops.gs.team/repository/maven-releases</url>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
 
@@ -89,6 +102,7 @@
         <apache.http5.version>5.3.1</apache.http5.version>
         <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
         <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
+        <maven-gpg-plugin.version>3.2.4</maven-gpg-plugin.version>
         <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
         <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
         <snakeyaml.version>2.2</snakeyaml.version>
@@ -212,20 +226,20 @@
                     </execution>
                 </executions>
             </plugin>
-            <!--            <plugin>-->
-            <!--                <groupId>org.apache.maven.plugins</groupId>-->
-            <!--                <artifactId>maven-gpg-plugin</artifactId>-->
-            <!--                <version>${maven-gpg-plugin.version}</version>-->
-            <!--                <executions>-->
-            <!--                    <execution>-->
-            <!--                        <id>sign-artifacts</id>-->
-            <!--                        <phase>verify</phase>-->
-            <!--                        <goals>-->
-            <!--                            <goal>sign</goal>-->
-            <!--                        </goals>-->
-            <!--                    </execution>-->
-            <!--                </executions>-->
-            <!--            </plugin>-->
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-gpg-plugin</artifactId>-->
+<!--                <version>${maven-gpg-plugin.version}</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>sign-artifacts</id>-->
+<!--                        <phase>verify</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>sign</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
             <plugin>
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
@@ -260,16 +274,16 @@
                     </execution>
                 </executions>
             </plugin>
-            <!--            <plugin>-->
-            <!--                <groupId>org.sonatype.plugins</groupId>-->
-            <!--                <artifactId>nexus-staging-maven-plugin</artifactId>-->
-            <!--                <version>${nexus-staging-maven-plugin.version}</version>-->
-            <!--                <configuration>-->
-            <!--                    <serverId>maven-snapshots</serverId>-->
-            <!--                    <nexusUrl>https://nexus.devops.gs.team/repository/maven-snapshots</nexusUrl>-->
-            <!--                    <autoReleaseAfterClose>true</autoReleaseAfterClose>-->
-            <!--                </configuration>-->
-            <!--            </plugin>-->
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>${nexus-staging-maven-plugin.version}</version>
+                <configuration>
+                    <serverId>sonatype-nexus-staging</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
