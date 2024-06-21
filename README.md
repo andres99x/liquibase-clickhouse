@@ -90,4 +90,3 @@ paths in your zookeeper:
   ```shell
     MAVEN_GPG_PASSPHRASE='passphrase' ./mvnw clean deploy
   ```
-
