@@ -52,3 +52,42 @@ paths in your zookeeper:
  - From the version 0.7.0 the liquibase-clickhouse supports replication on a cluster. Liquibase v4.6.1.
 
  - From the version 0.6.0 the extension adapted for the liquibase v4.3.5.
+
+
+### Uploading to maven central:
+
+1) Make sure that token for upload sucessfully configured in `settings.xml` file:
+
+  ```shell
+  └──╼ $ cat ~/.m2/settings.xml                                                                                                                                             <aws:091468197733>
+  <settings>
+      <servers>
+          <server>
+            <id>central</id>
+            <username>token-key</username>
+            <password>token-secret-key</password>
+          </server>
+      </servers>
+  </settings>
+  ```
+
+2) Import public and private gpg key locally (located in keybase)
+
+  ```shell
+  gpg --import genestack-secret.pgp
+  gpg --import genestack-public.pgp
+  ```
+
+3) OPTIONAL! Make sure it's public key is published.
+
+  ```shell
+  gpg --list-keys
+  gpg --keyserver keyserver.ubuntu.com --search-key FINGERPRINT_FROM_FIRST_COMMAND
+  ```
+
+4) Finally publish the package
+
+  ```shell
+    MAVEN_GPG_PASSPHRASE='passphrase' ./mvnw clean deploy
+  ```
+
