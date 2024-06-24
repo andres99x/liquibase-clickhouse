@@ -19,8 +19,6 @@
  */
 package liquibase;
 
-import java.sql.Statement;
-
 import liquibase.change.custom.CustomTaskChange;
 import liquibase.database.Database;
 import liquibase.database.jvm.JdbcConnection;
@@ -28,6 +26,8 @@ import liquibase.exception.CustomChangeException;
 import liquibase.exception.SetupException;
 import liquibase.exception.ValidationErrors;
 import liquibase.resource.ResourceAccessor;
+
+import java.sql.Statement;
 
 public class CustomChange implements CustomTaskChange {
 

@@ -20,23 +20,23 @@
 package liquibase.ext.clickhouse.sqlgenerator.changelog;
 
 public enum ChangelogColumns {
-  ID,
-  AUTHOR,
-  FILENAME,
-  DATEEXECUTED,
-  ORDEREXECUTED,
-  EXECTYPE,
-  MD5SUM,
-  DESCRIPTION,
-  COMMENTS,
-  TAG,
-  LIQUIBASE,
-  CONTEXTS,
-  LABELS,
-  DEPLOYMENT_ID;
+    ID,
+    AUTHOR,
+    FILENAME,
+    DATEEXECUTED,
+    ORDEREXECUTED,
+    EXECTYPE,
+    MD5SUM,
+    DESCRIPTION,
+    COMMENTS,
+    TAG,
+    LIQUIBASE,
+    CONTEXTS,
+    LABELS,
+    DEPLOYMENT_ID;
 
-  @Override
-  public String toString() {
-    return name().toUpperCase();
-  }
+    @Override
+    public String toString() {
+        return name().toUpperCase();
+    }
 }

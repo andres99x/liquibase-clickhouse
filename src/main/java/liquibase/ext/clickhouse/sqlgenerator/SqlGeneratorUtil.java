@@ -19,27 +19,28 @@
  */
 package liquibase.ext.clickhouse.sqlgenerator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import liquibase.database.Database;
 import liquibase.sql.Sql;
 import liquibase.sqlgenerator.SqlGeneratorFactory;
 import liquibase.statement.core.RawSqlStatement;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public final class SqlGeneratorUtil {
 
-  private SqlGeneratorUtil() { }
-
-  public static Sql[] generateSql(Database database, String... statements) {
-    SqlGeneratorFactory sqlGeneratorFactory = SqlGeneratorFactory.getInstance();
-    List<Sql> allSqlStatements = new ArrayList<>();
-    for (String statement : statements) {
-      RawSqlStatement rawSqlStatement = new RawSqlStatement(statement);
-      Sql[] perStatement = sqlGeneratorFactory.generateSql(rawSqlStatement, database);
-      allSqlStatements.addAll(Arrays.asList(perStatement));
+    private SqlGeneratorUtil() {
     }
-    return allSqlStatements.toArray(new Sql[0]);
-  }
+
+    public static Sql[] generateSql(Database database, String... statements) {
+        SqlGeneratorFactory sqlGeneratorFactory = SqlGeneratorFactory.getInstance();
+        List<Sql> allSqlStatements = new ArrayList<>();
+        for (String statement: statements) {
+            RawSqlStatement rawSqlStatement = new RawSqlStatement(statement);
+            Sql[] perStatement = sqlGeneratorFactory.generateSql(rawSqlStatement, database);
+            allSqlStatements.addAll(Arrays.asList(perStatement));
+        }
+        return allSqlStatements.toArray(new Sql[0]);
+    }
 }

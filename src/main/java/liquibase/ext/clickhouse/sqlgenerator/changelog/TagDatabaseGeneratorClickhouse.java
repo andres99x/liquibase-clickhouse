@@ -19,42 +19,43 @@
  */
 package liquibase.ext.clickhouse.sqlgenerator.changelog;
 
-import java.util.EnumMap;
-
+import liquibase.database.Database;
 import liquibase.ext.clickhouse.database.ClickHouseDatabase;
 import liquibase.ext.clickhouse.params.LiquibaseClickHouseConfig;
 import liquibase.ext.clickhouse.params.ParamsLoader;
 import liquibase.ext.clickhouse.sqlgenerator.SqlGeneratorUtil;
 import liquibase.ext.clickhouse.sqlgenerator.changelog.template.UpsertTemplate;
-
-import liquibase.database.Database;
 import liquibase.sql.Sql;
 import liquibase.sqlgenerator.SqlGeneratorChain;
 import liquibase.sqlgenerator.core.TagDatabaseGenerator;
 import liquibase.statement.core.TagDatabaseStatement;
 
+import java.util.EnumMap;
+
 public class TagDatabaseGeneratorClickhouse extends TagDatabaseGenerator {
-  @Override
-  public int getPriority() {
-    return PRIORITY_DATABASE;
-  }
+    @Override
+    public int getPriority() {
+        return PRIORITY_DATABASE;
+    }
 
-  @Override
-  public boolean supports(TagDatabaseStatement statement, Database database) {
-    return database instanceof ClickHouseDatabase;
-  }
+    @Override
+    public boolean supports(TagDatabaseStatement statement, Database database) {
+        return database instanceof ClickHouseDatabase;
+    }
 
-  @Override
-  public Sql[] generateSql(
-      TagDatabaseStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
-    LiquibaseClickHouseConfig config = ParamsLoader.getLiquibaseClickhouseProperties();
-    var maxIDSubQuery =
-        String.format(
-            "(SELECT ID FROM %s.%s FINAL LIMIT 1)",
-            database.getLiquibaseCatalogName(), database.getDatabaseChangeLogTableName());
-    var replacements = new EnumMap<>(ChangelogColumns.class);
-    replacements.put(ChangelogColumns.TAG, statement.getTag());
-    var query = config.accept(new UpsertTemplate(database, replacements, maxIDSubQuery));
-    return SqlGeneratorUtil.generateSql(database, query);
-  }
+    @Override
+    public Sql[] generateSql(
+        TagDatabaseStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain
+    ) {
+        LiquibaseClickHouseConfig config = ParamsLoader.getLiquibaseClickhouseProperties();
+        var maxIDSubQuery =
+            String.format(
+                "(SELECT ID FROM %s.%s FINAL LIMIT 1)",
+                database.getLiquibaseCatalogName(), database.getDatabaseChangeLogTableName()
+            );
+        var replacements = new EnumMap<>(ChangelogColumns.class);
+        replacements.put(ChangelogColumns.TAG, statement.getTag());
+        var query = config.accept(new UpsertTemplate(database, replacements, maxIDSubQuery));
+        return SqlGeneratorUtil.generateSql(database, query);
+    }
 }

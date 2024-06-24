@@ -19,8 +19,6 @@
  */
 package liquibase.ext.clickhouse.lockservice;
 
-import liquibase.ext.clickhouse.database.ClickHouseDatabase;
-
 import liquibase.Scope;
 import liquibase.database.Database;
 import liquibase.exception.DatabaseException;
@@ -28,79 +26,82 @@ import liquibase.exception.LiquibaseException;
 import liquibase.exception.UnexpectedLiquibaseException;
 import liquibase.executor.Executor;
 import liquibase.executor.ExecutorService;
+import liquibase.ext.clickhouse.database.ClickHouseDatabase;
 import liquibase.lockservice.StandardLockService;
 import liquibase.logging.Logger;
 import liquibase.statement.core.RawSqlStatement;
 
 public class ClickHouseLockService extends StandardLockService {
 
-  public ClickHouseLockService() {
-    super();
-  }
+    public ClickHouseLockService() {
+        super();
+    }
 
-  @Override
-  public void init() throws DatabaseException {
-    super.init();
-    hasDatabaseChangeLogLockTable = hasDatabaseChangeLogLockTable();
-  }
+    @Override
+    public void init() throws DatabaseException {
+        super.init();
+        hasDatabaseChangeLogLockTable = hasDatabaseChangeLogLockTable();
+    }
 
-  private boolean isLockTableInitialized;
+    private boolean isLockTableInitialized;
 
-  @Override
-  public int getPriority() {
-    return PRIORITY_DATABASE;
-  }
+    @Override
+    public int getPriority() {
+        return PRIORITY_DATABASE;
+    }
 
-  @Override
-  public boolean supports(Database database) {
-    return database instanceof ClickHouseDatabase;
-  }
+    @Override
+    public boolean supports(Database database) {
+        return database instanceof ClickHouseDatabase;
+    }
 
-  @Override
-  public boolean isDatabaseChangeLogLockTableInitialized(boolean tableJustCreated) {
-    if (!isLockTableInitialized) {
-      try {
-        String query =
-            String.format(
-                "SELECT COUNT(*) FROM `%s`.%s",
-                database.getLiquibaseCatalogName(), database.getDatabaseChangeLogLockTableName());
-        int nbRows = getExecutor().queryForInt(new RawSqlStatement(query));
-        isLockTableInitialized = nbRows > 0;
-      } catch (LiquibaseException e) {
-        if (getExecutor().updatesDatabase()) {
-          throw new UnexpectedLiquibaseException(e);
-        } else {
-          isLockTableInitialized = !tableJustCreated;
+    @Override
+    public boolean isDatabaseChangeLogLockTableInitialized(boolean tableJustCreated) {
+        if (!isLockTableInitialized) {
+            try {
+                String query =
+                    String.format(
+                        "SELECT COUNT(*) FROM `%s`.%s",
+                        database.getLiquibaseCatalogName(), database.getDatabaseChangeLogLockTableName()
+                    );
+                int nbRows = getExecutor().queryForInt(new RawSqlStatement(query));
+                isLockTableInitialized = nbRows > 0;
+            } catch (LiquibaseException e) {
+                if (getExecutor().updatesDatabase()) {
+                    throw new UnexpectedLiquibaseException(e);
+                } else {
+                    isLockTableInitialized = !tableJustCreated;
+                }
+            }
         }
-      }
+        return isLockTableInitialized;
     }
-    return isLockTableInitialized;
-  }
 
-  private boolean hasDatabaseChangeLogLockTable() {
-    boolean hasTable = false;
-    try {
-      String query =
-          String.format(
-              "SELECT ID FROM `%s`.%s LIMIT 1",
-              database.getLiquibaseCatalogName(), database.getDatabaseChangeLogLockTableName());
-      getExecutor().execute(new RawSqlStatement(query));
-      hasTable = true;
-    } catch (DatabaseException e) {
-      getLogger()
-          .info(
-              String.format("No %s table available", database.getDatabaseChangeLogLockTableName()));
+    private boolean hasDatabaseChangeLogLockTable() {
+        boolean hasTable = false;
+        try {
+            String query =
+                String.format(
+                    "SELECT ID FROM `%s`.%s LIMIT 1",
+                    database.getLiquibaseCatalogName(), database.getDatabaseChangeLogLockTableName()
+                );
+            getExecutor().execute(new RawSqlStatement(query));
+            hasTable = true;
+        } catch (DatabaseException e) {
+            getLogger()
+                .info(
+                    String.format("No %s table available", database.getDatabaseChangeLogLockTableName()));
+        }
+        return hasTable;
     }
-    return hasTable;
-  }
 
-  private Executor getExecutor() {
-    return Scope.getCurrentScope()
-        .getSingleton(ExecutorService.class)
-        .getExecutor("jdbc", database);
-  }
+    private Executor getExecutor() {
+        return Scope.getCurrentScope()
+                   .getSingleton(ExecutorService.class)
+                   .getExecutor("jdbc", database);
+    }
 
-  private Logger getLogger() {
-    return Scope.getCurrentScope().getLog(ClickHouseLockService.class);
-  }
+    private Logger getLogger() {
+        return Scope.getCurrentScope().getLog(ClickHouseLockService.class);
+    }
 }

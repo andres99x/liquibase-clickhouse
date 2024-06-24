@@ -19,13 +19,12 @@
  */
 package liquibase.ext.clickhouse.sqlgenerator.changeloglock;
 
+import liquibase.database.Database;
 import liquibase.ext.clickhouse.database.ClickHouseDatabase;
 import liquibase.ext.clickhouse.params.LiquibaseClickHouseConfig;
 import liquibase.ext.clickhouse.params.ParamsLoader;
 import liquibase.ext.clickhouse.sqlgenerator.SqlGeneratorUtil;
 import liquibase.ext.clickhouse.sqlgenerator.changeloglock.template.CreateDatabaseChangeLogLockTableTemplate;
-
-import liquibase.database.Database;
 import liquibase.sql.Sql;
 import liquibase.sqlgenerator.SqlGeneratorChain;
 import liquibase.sqlgenerator.core.CreateDatabaseChangeLogLockTableGenerator;
@@ -34,25 +33,26 @@ import liquibase.statement.core.CreateDatabaseChangeLogLockTableStatement;
 public class CreateDatabaseChangeLogLockTableClickHouse
     extends CreateDatabaseChangeLogLockTableGenerator {
 
-  @Override
-  public int getPriority() {
-    return PRIORITY_DATABASE;
-  }
+    @Override
+    public int getPriority() {
+        return PRIORITY_DATABASE;
+    }
 
-  @Override
-  public boolean supports(CreateDatabaseChangeLogLockTableStatement statement, Database database) {
-    return database instanceof ClickHouseDatabase;
-  }
+    @Override
+    public boolean supports(CreateDatabaseChangeLogLockTableStatement statement, Database database) {
+        return database instanceof ClickHouseDatabase;
+    }
 
-  @Override
-  public Sql[] generateSql(
-      CreateDatabaseChangeLogLockTableStatement statement,
-      Database database,
-      SqlGeneratorChain sqlGeneratorChain) {
-    LiquibaseClickHouseConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
-    String createTableQuery =
-        properties.accept(new CreateDatabaseChangeLogLockTableTemplate(database));
+    @Override
+    public Sql[] generateSql(
+        CreateDatabaseChangeLogLockTableStatement statement,
+        Database database,
+        SqlGeneratorChain sqlGeneratorChain
+    ) {
+        LiquibaseClickHouseConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
+        String createTableQuery =
+            properties.accept(new CreateDatabaseChangeLogLockTableTemplate(database));
 
-    return SqlGeneratorUtil.generateSql(database, createTableQuery);
-  }
+        return SqlGeneratorUtil.generateSql(database, createTableQuery);
+    }
 }

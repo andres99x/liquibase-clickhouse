@@ -19,18 +19,17 @@
  */
 package liquibase;
 
-import java.sql.Connection;
-
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.ext.clickhouse.params.LiquibaseClickHouseConfig;
 import liquibase.ext.clickhouse.params.ParamsLoader;
-import liquibase.ext.clickhouse.params.StandaloneConfig;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import liquibase.resource.ResourceAccessor;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.shaded.org.apache.commons.io.output.NullWriter;
+
+import java.sql.Connection;
 
 public abstract class BaseClickHouseTest {
     @Test

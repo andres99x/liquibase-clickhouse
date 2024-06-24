@@ -19,53 +19,54 @@
  */
 package liquibase.ext.clickhouse.sqlgenerator.changeloglock.template;
 
+import liquibase.database.Database;
 import liquibase.ext.clickhouse.params.ClusterConfig;
 import liquibase.ext.clickhouse.params.StandaloneConfig;
 import liquibase.ext.clickhouse.sqlgenerator.LiquibaseSqlTemplate;
 import liquibase.ext.clickhouse.sqlgenerator.OnClusterTemplate;
 
-import liquibase.database.Database;
-
 public class CreateDatabaseChangeLogLockTableTemplate extends LiquibaseSqlTemplate<String> {
 
-  private final Database database;
-  private final OnClusterTemplate onClusterTemplate;
+    private final Database database;
+    private final OnClusterTemplate onClusterTemplate;
 
-  public CreateDatabaseChangeLogLockTableTemplate(Database database) {
-    this.database = database;
-    this.onClusterTemplate = new OnClusterTemplate();
-  }
+    public CreateDatabaseChangeLogLockTableTemplate(Database database) {
+        this.database = database;
+        this.onClusterTemplate = new OnClusterTemplate();
+    }
 
-  @Override
-  public String visit(StandaloneConfig standaloneConfig) {
-    return String.format(
-        "CREATE TABLE IF NOT EXISTS `%s`.%s "
-            + "("
-            + "ID Int64,"
-            + "LOCKED UInt8,"
-            + "SIGN Int8,"
-            + "LOCKGRANTED Nullable(DateTime64),"
-            + "LOCKEDBY Nullable(String)"
-            + ") "
-            + "ENGINE CollapsingMergeTree(SIGN) ORDER BY (ID, LOCKED)",
-        database.getLiquibaseCatalogName(), database.getDatabaseChangeLogLockTableName());
-  }
+    @Override
+    public String visit(StandaloneConfig standaloneConfig) {
+        return String.format(
+            "CREATE TABLE IF NOT EXISTS `%s`.%s "
+                + "("
+                + "ID Int64,"
+                + "LOCKED UInt8,"
+                + "SIGN Int8,"
+                + "LOCKGRANTED Nullable(DateTime64),"
+                + "LOCKEDBY Nullable(String)"
+                + ") "
+                + "ENGINE CollapsingMergeTree(SIGN) ORDER BY (ID, LOCKED)",
+            database.getLiquibaseCatalogName(), database.getDatabaseChangeLogLockTableName()
+        );
+    }
 
-  @Override
-  public String visit(ClusterConfig clusterConfig) {
-    return String.format(
-        "CREATE TABLE IF NOT EXISTS `%s`.%s %s"
-            + "("
-            + "ID Int64,"
-            + "LOCKED UInt8,"
-            + "LOCKGRANTED Nullable(DateTime64),"
-            + "LOCKEDBY Nullable(String)"
-            + ") "
-            + "ENGINE KeeperMap('%s/%s', 1) PRIMARY KEY (ID)",
-        database.getLiquibaseCatalogName(),
-        database.getDatabaseChangeLogLockTableName(),
-        clusterConfig.accept(onClusterTemplate),
-        clusterConfig.tableZooKeeperPathPrefix(),
-        database.getDatabaseChangeLogLockTableName());
-  }
+    @Override
+    public String visit(ClusterConfig clusterConfig) {
+        return String.format(
+            "CREATE TABLE IF NOT EXISTS `%s`.%s %s"
+                + "("
+                + "ID Int64,"
+                + "LOCKED UInt8,"
+                + "LOCKGRANTED Nullable(DateTime64),"
+                + "LOCKEDBY Nullable(String)"
+                + ") "
+                + "ENGINE KeeperMap('%s/%s', 1) PRIMARY KEY (ID)",
+            database.getLiquibaseCatalogName(),
+            database.getDatabaseChangeLogLockTableName(),
+            clusterConfig.accept(onClusterTemplate),
+            clusterConfig.tableZooKeeperPathPrefix(),
+            database.getDatabaseChangeLogLockTableName()
+        );
+    }
 }

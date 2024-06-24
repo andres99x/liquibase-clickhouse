@@ -19,31 +19,32 @@
  */
 package liquibase.ext.clickhouse.sqlgenerator.changeloglock.template;
 
+import liquibase.database.Database;
 import liquibase.ext.clickhouse.params.ClusterConfig;
 import liquibase.ext.clickhouse.params.StandaloneConfig;
 import liquibase.ext.clickhouse.sqlgenerator.LiquibaseSqlTemplate;
 
-import liquibase.database.Database;
-
 public class InitialLockRecordTemplate extends LiquibaseSqlTemplate<String> {
 
-  private final Database database;
+    private final Database database;
 
-  public InitialLockRecordTemplate(Database database) {
-    this.database = database;
-  }
+    public InitialLockRecordTemplate(Database database) {
+        this.database = database;
+    }
 
-  @Override
-  public String visit(StandaloneConfig config) {
-    return String.format(
-        "INSERT INTO `%s`.%s (ID, LOCKED, SIGN) VALUES (1, 0, 1)",
-        database.getLiquibaseCatalogName(), database.getDatabaseChangeLogLockTableName());
-  }
+    @Override
+    public String visit(StandaloneConfig config) {
+        return String.format(
+            "INSERT INTO `%s`.%s (ID, LOCKED, SIGN) VALUES (1, 0, 1)",
+            database.getLiquibaseCatalogName(), database.getDatabaseChangeLogLockTableName()
+        );
+    }
 
-  @Override
-  public String visit(ClusterConfig config) {
-    return String.format(
-        "INSERT INTO `%s`.%s (ID, LOCKED) VALUES (1, 0)",
-        database.getLiquibaseCatalogName(), database.getDatabaseChangeLogLockTableName());
-  }
+    @Override
+    public String visit(ClusterConfig config) {
+        return String.format(
+            "INSERT INTO `%s`.%s (ID, LOCKED) VALUES (1, 0)",
+            database.getLiquibaseCatalogName(), database.getDatabaseChangeLogLockTableName()
+        );
+    }
 }

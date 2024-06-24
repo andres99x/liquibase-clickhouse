@@ -19,14 +19,13 @@
  */
 package liquibase.ext.clickhouse.sqlgenerator.changeloglock;
 
+import liquibase.database.Database;
 import liquibase.ext.clickhouse.database.ClickHouseDatabase;
 import liquibase.ext.clickhouse.params.LiquibaseClickHouseConfig;
 import liquibase.ext.clickhouse.params.ParamsLoader;
 import liquibase.ext.clickhouse.sqlgenerator.SqlGeneratorUtil;
 import liquibase.ext.clickhouse.sqlgenerator.changeloglock.template.InitialLockRecordTemplate;
 import liquibase.ext.clickhouse.sqlgenerator.changeloglock.template.TruncateTableTemplate;
-
-import liquibase.database.Database;
 import liquibase.sql.Sql;
 import liquibase.sqlgenerator.SqlGeneratorChain;
 import liquibase.sqlgenerator.core.InitializeDatabaseChangeLogLockTableGenerator;
@@ -35,28 +34,30 @@ import liquibase.statement.core.InitializeDatabaseChangeLogLockTableStatement;
 public class InitializeDatabaseChangeLogLockClickHouse
     extends InitializeDatabaseChangeLogLockTableGenerator {
 
-  @Override
-  public int getPriority() {
-    return PRIORITY_DATABASE;
-  }
+    @Override
+    public int getPriority() {
+        return PRIORITY_DATABASE;
+    }
 
-  @Override
-  public boolean supports(
-      InitializeDatabaseChangeLogLockTableStatement statement, Database database) {
-    return database instanceof ClickHouseDatabase;
-  }
+    @Override
+    public boolean supports(
+        InitializeDatabaseChangeLogLockTableStatement statement, Database database
+    ) {
+        return database instanceof ClickHouseDatabase;
+    }
 
-  @Override
-  public Sql[] generateSql(
-      InitializeDatabaseChangeLogLockTableStatement statement,
-      Database database,
-      SqlGeneratorChain sqlGeneratorChain) {
-    LiquibaseClickHouseConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
+    @Override
+    public Sql[] generateSql(
+        InitializeDatabaseChangeLogLockTableStatement statement,
+        Database database,
+        SqlGeneratorChain sqlGeneratorChain
+    ) {
+        LiquibaseClickHouseConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
 
-    String clearDatabaseQuery = properties.accept(new TruncateTableTemplate(database));
+        String clearDatabaseQuery = properties.accept(new TruncateTableTemplate(database));
 
-    String initLockQuery = properties.accept(new InitialLockRecordTemplate(database));
+        String initLockQuery = properties.accept(new InitialLockRecordTemplate(database));
 
-    return SqlGeneratorUtil.generateSql(database, clearDatabaseQuery, initLockQuery);
-  }
+        return SqlGeneratorUtil.generateSql(database, clearDatabaseQuery, initLockQuery);
+    }
 }

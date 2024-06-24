@@ -19,37 +19,38 @@
  */
 package liquibase.ext.clickhouse.sqlgenerator.changelog.template;
 
+import liquibase.database.Database;
 import liquibase.ext.clickhouse.params.LiquibaseClickHouseConfig;
 import liquibase.ext.clickhouse.sqlgenerator.LiquibaseSqlTemplate;
 import liquibase.ext.clickhouse.sqlgenerator.OnClusterTemplate;
-
-import liquibase.database.Database;
 import liquibase.statement.core.RemoveChangeSetRanStatusStatement;
 
 public class RemoveChangeSetRanStatusTemplate extends LiquibaseSqlTemplate<String> {
 
-  private final Database database;
-  private final RemoveChangeSetRanStatusStatement statement;
-  private final OnClusterTemplate onClusterTemplate;
+    private final Database database;
+    private final RemoveChangeSetRanStatusStatement statement;
+    private final OnClusterTemplate onClusterTemplate;
 
-  public RemoveChangeSetRanStatusTemplate(
-      Database database, RemoveChangeSetRanStatusStatement statement) {
-    this.database = database;
-    this.statement = statement;
-    this.onClusterTemplate = new OnClusterTemplate();
-  }
+    public RemoveChangeSetRanStatusTemplate(
+        Database database, RemoveChangeSetRanStatusStatement statement
+    ) {
+        this.database = database;
+        this.statement = statement;
+        this.onClusterTemplate = new OnClusterTemplate();
+    }
 
-  @Override
-  public String visitDefault(LiquibaseClickHouseConfig clickHouseConfig) {
-    var changeSet = statement.getChangeSet();
-    return String.format(
-        "DELETE FROM `%s`.%s "
-            + clickHouseConfig.accept(onClusterTemplate)
-            + " WHERE ID = '%s' AND AUTHOR = '%s' AND FILENAME = '%s'",
-        database.getLiquibaseCatalogName(),
-        database.getDatabaseChangeLogTableName(),
-        changeSet.getId(),
-        changeSet.getAuthor(),
-        changeSet.getFilePath());
-  }
+    @Override
+    public String visitDefault(LiquibaseClickHouseConfig clickHouseConfig) {
+        var changeSet = statement.getChangeSet();
+        return String.format(
+            "DELETE FROM `%s`.%s "
+                + clickHouseConfig.accept(onClusterTemplate)
+                + " WHERE ID = '%s' AND AUTHOR = '%s' AND FILENAME = '%s'",
+            database.getLiquibaseCatalogName(),
+            database.getDatabaseChangeLogTableName(),
+            changeSet.getId(),
+            changeSet.getAuthor(),
+            changeSet.getFilePath()
+        );
+    }
 }

@@ -19,13 +19,12 @@
  */
 package liquibase.ext.clickhouse.sqlgenerator.changelog;
 
+import liquibase.database.Database;
 import liquibase.ext.clickhouse.database.ClickHouseDatabase;
 import liquibase.ext.clickhouse.params.LiquibaseClickHouseConfig;
 import liquibase.ext.clickhouse.params.ParamsLoader;
 import liquibase.ext.clickhouse.sqlgenerator.SqlGeneratorUtil;
 import liquibase.ext.clickhouse.sqlgenerator.changelog.template.RemoveChangeSetRanStatusTemplate;
-
-import liquibase.database.Database;
 import liquibase.sql.Sql;
 import liquibase.sqlgenerator.SqlGeneratorChain;
 import liquibase.sqlgenerator.core.RemoveChangeSetRanStatusGenerator;
@@ -33,24 +32,25 @@ import liquibase.statement.core.RemoveChangeSetRanStatusStatement;
 
 public class RemoveChangeSetRanStatusClickHouse extends RemoveChangeSetRanStatusGenerator {
 
-  @Override
-  public int getPriority() {
-    return PRIORITY_DATABASE;
-  }
+    @Override
+    public int getPriority() {
+        return PRIORITY_DATABASE;
+    }
 
-  @Override
-  public boolean supports(RemoveChangeSetRanStatusStatement statement, Database database) {
-    return database instanceof ClickHouseDatabase;
-  }
+    @Override
+    public boolean supports(RemoveChangeSetRanStatusStatement statement, Database database) {
+        return database instanceof ClickHouseDatabase;
+    }
 
-  @Override
-  public Sql[] generateSql(
-      RemoveChangeSetRanStatusStatement statement,
-      Database database,
-      SqlGeneratorChain sqlGeneratorChain) {
-    LiquibaseClickHouseConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
-    String removeChangeSet =
-        properties.accept(new RemoveChangeSetRanStatusTemplate(database, statement));
-    return SqlGeneratorUtil.generateSql(database, removeChangeSet);
-  }
+    @Override
+    public Sql[] generateSql(
+        RemoveChangeSetRanStatusStatement statement,
+        Database database,
+        SqlGeneratorChain sqlGeneratorChain
+    ) {
+        LiquibaseClickHouseConfig properties = ParamsLoader.getLiquibaseClickhouseProperties();
+        String removeChangeSet =
+            properties.accept(new RemoveChangeSetRanStatusTemplate(database, statement));
+        return SqlGeneratorUtil.generateSql(database, removeChangeSet);
+    }
 }
