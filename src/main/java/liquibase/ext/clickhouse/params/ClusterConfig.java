@@ -2,7 +2,7 @@
  * #%L
  * Liquibase extension for ClickHouse
  * %%
- * Copyright (C) 2020 - 2022 Mediarithmics
+ * Copyright (C) 2020 - 2024 Genestack LTD
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,41 +19,14 @@
  */
 package liquibase.ext.clickhouse.params;
 
-public class ClusterConfig {
-  private String clusterName;
-  private String tableZooKeeperPathPrefix;
-  private String tableReplicaName;
+public record ClusterConfig(
+    String clusterName,
+    String tableZooKeeperPathPrefix
+) implements LiquibaseClickHouseConfig {
 
-  public ClusterConfig() {}
 
-  public ClusterConfig(
-      String clusterName, String tableZooKeeperPathPrefix, String tableReplicaName) {
-    this.clusterName = clusterName;
-    this.tableZooKeeperPathPrefix = tableZooKeeperPathPrefix;
-    this.tableReplicaName = tableReplicaName;
-  }
-
-  public String getClusterName() {
-    return clusterName;
-  }
-
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
-  }
-
-  public String getTableZooKeeperPathPrefix() {
-    return tableZooKeeperPathPrefix;
-  }
-
-  public void setTableZooKeeperPathPrefix(String tableZooKeeperPathPrefix) {
-    this.tableZooKeeperPathPrefix = tableZooKeeperPathPrefix;
-  }
-
-  public String getTableReplicaName() {
-    return tableReplicaName;
-  }
-
-  public void setTableReplicaName(String tableReplicaName) {
-    this.tableReplicaName = tableReplicaName;
-  }
+    @Override
+    public <T> T accept(LiquibaseConfigVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 }

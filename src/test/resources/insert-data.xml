@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2011-2021 Genestack Limited
+  ~ All Rights Reserved
+  ~ THIS IS UNPUBLISHED PROPRIETARY SOURCE CODE OF GENESTACK LIMITED
+  ~ The copyright notice above does not evidence any
+  ~ actual or intended publication of such source code.
+  -->
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+    <changeSet id="insert-data" author="oak&amp;viacheslav.pivovarov">
+        <sql splitStatements="true">
+            <![CDATA[
+        INSERT INTO IndexDist(rowId, fileId, line) VALUES (1, 1, 'line1');
+        INSERT INTO IndexDist(rowId, fileId, line) VALUES (2, 2, 'line2');
+        INSERT INTO IndexDist(rowId, fileId, line) VALUES (3, 3, 'line3');
+        INSERT INTO IndexDist(rowId, fileId, line) VALUES (4, 1, 'line4');
+        INSERT INTO IndexDist(rowId, fileId, line) VALUES (5, 2, 'line5');
+        INSERT INTO IndexDist(rowId, fileId, line) VALUES (6, 3, 'line6');
+        INSERT INTO IndexDist(rowId, fileId, line) VALUES (7, 1, 'line7');
+        INSERT INTO IndexDist(rowId, fileId, line) VALUES (8, 2, 'line8');
+        INSERT INTO IndexDist(rowId, fileId, line) VALUES (9, 3, 'line9');
+
+        SYSTEM RELOAD DICTIONARY IndexDict ON CLUSTER '{cluster}';
+        -- Wait till the preivious reload is finished
+        SYSTEM RELOAD DICTIONARY IndexDict ON CLUSTER '{cluster}';
+
+        INSERT INTO DataByRowDist(rowId, item) VALUES (1, 'item1');
+        INSERT INTO DataByRowDist(rowId, item) VALUES (2, 'item2');
+        INSERT INTO DataByRowDist(rowId, item) VALUES (3, 'item3');
+        INSERT INTO DataByRowDist(rowId, item) VALUES (4, 'item4');
+        INSERT INTO DataByRowDist(rowId, item) VALUES (5, 'item5');
+        INSERT INTO DataByRowDist(rowId, item) VALUES (6, 'item6');
+        INSERT INTO DataByRowDist(rowId, item) VALUES (7, 'item7');
+        INSERT INTO DataByRowDist(rowId, item) VALUES (8, 'item8');
+        INSERT INTO DataByRowDist(rowId, item) VALUES (9, 'item9');
+            ]]>
+        </sql>
+    </changeSet>
+</databaseChangeLog>

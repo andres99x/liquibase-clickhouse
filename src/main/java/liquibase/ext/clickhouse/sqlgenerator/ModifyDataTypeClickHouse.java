@@ -2,7 +2,7 @@
  * #%L
  * Liquibase extension for Clickhouse
  * %%
- * Copyright (C) 2020 - 2022 Mediarithmics
+ * Copyright (C) 2020 - 2024 Genestack LTD
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,8 @@
  */
 package liquibase.ext.clickhouse.sqlgenerator;
 
-import liquibase.ext.clickhouse.database.ClickHouseDatabase;
-
 import liquibase.database.Database;
+import liquibase.ext.clickhouse.database.ClickHouseDatabase;
 import liquibase.sql.Sql;
 import liquibase.sqlgenerator.SqlGeneratorChain;
 import liquibase.sqlgenerator.core.ModifyDataTypeGenerator;
@@ -33,19 +32,20 @@ import liquibase.statement.core.ModifyDataTypeStatement;
  */
 public class ModifyDataTypeClickHouse extends ModifyDataTypeGenerator {
 
-  @Override
-  public int getPriority() {
-    return PRIORITY_DATABASE;
-  }
+    @Override
+    public int getPriority() {
+        return PRIORITY_DATABASE;
+    }
 
-  @Override
-  public boolean supports(ModifyDataTypeStatement statement, Database database) {
-    return database instanceof ClickHouseDatabase;
-  }
+    @Override
+    public boolean supports(ModifyDataTypeStatement statement, Database database) {
+        return database instanceof ClickHouseDatabase;
+    }
 
-  @Override
-  public Sql[] generateSql(
-      ModifyDataTypeStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain) {
-    return new Sql[0];
-  }
+    @Override
+    public Sql[] generateSql(
+        ModifyDataTypeStatement statement, Database database, SqlGeneratorChain sqlGeneratorChain
+    ) {
+        return new Sql[0];
+    }
 }
