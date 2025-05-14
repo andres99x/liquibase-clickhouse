@@ -2,7 +2,8 @@
  * #%L
  * Liquibase extension for ClickHouse
  * %%
- * Copyright (C) 2020 - 2024 Genestack LTD
+ * Copyright (C) 2020 - 2023 Mediarithmics
+ * Copyright (C) 2024 - 2025 Genestack Limited
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

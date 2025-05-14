@@ -44,6 +44,10 @@ paths in your zookeeper:
 <hr/>
 
 ###### Important changes
+ - 0.8.4:
+   - Major update of libraries and images
+   - Support of v2 ClickHouse jdbc driver (v1 for standalone mode)
+   - Aligning license with the original project
  - Since version 0.8.1 the plugin uses Zookeeper for storing information about migrations.
  - The version 0.8.0 is not back-compatible with previous versions.
  - From the version 0.8.0 the extension adapted for the liquibase v4.26, Java baseline changed to 17, clickhouse baseline is

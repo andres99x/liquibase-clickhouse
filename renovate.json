@@ -1,0 +1,21 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": ["config:recommended"],
+    "schedule": ["* * 1 */2 *"],
+    "updateNotScheduled": false,
+    "labels": ["renovate"],
+    "dockerfile": {
+        "managerFilePatterns": [
+            "/(^|/)(?:[\\w.-]+-)(?:docker-)?compose[^/]*\\.ya?ml$/"
+        ]
+    },
+    "regexManagers": [
+        {
+            "fileMatch": ["^.*Images\\.java$"],
+            "matchStrings": [
+                "\\s*static\\s*final\\s*String\\s*(.*)\\s*=\\s*\"(?<depName>.*):(?<currentValue>.*)\""
+            ],
+            "datasourceTemplate": "docker"
+        }
+    ]
+}
