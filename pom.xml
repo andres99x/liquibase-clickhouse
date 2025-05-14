@@ -233,7 +233,7 @@
                 <configuration>
                     <licenseName>apache_v2</licenseName>
                     <licenseFile>LICENSE</licenseFile>
-                    <canUpdateCopyright>true</canUpdateCopyright>
+                    <canUpdateCopyright>false</canUpdateCopyright>
                     <addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
                     <includes>
                         <include>**/*.java</include>
