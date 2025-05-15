@@ -2,7 +2,7 @@
  * #%L
  * Liquibase extension for ClickHouse
  * %%
- * Copyright (C) 2020 - 2024 Genestack LTD
+ * Copyright (C) 2024 - 2025 Genestack Limited
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class ClickHouseClusterTest extends BaseClickHouseTest {
+public class ClickHouseClusterTest extends BaseClickHouseTestCase {
 
     private static final DockerComposeContainer<?> container = withClickHouseCluster();
 
@@ -76,25 +76,25 @@ public class ClickHouseClusterTest extends BaseClickHouseTest {
     @Test
     void canPerformCustomMigration() {
         @Language("ClickHouse")
-        String checkStatement = "select count(*) from DataByRowDist where item = 'custom'";
+        final String checkStatement = "select count(*) from DataByRowDist where item = 'custom'";
         runLiquibase(
             "changelog-cluster.xml",
             (liquibase, connection) -> {
                 liquibase.update("");
                 try (Statement stmt = connection.createStatement()) {
                     stmt.execute(checkStatement);
-                    var rs = stmt.getResultSet();
-                    rs.next();
-                    try {
+                    try (var rs = stmt.getResultSet()) {
+                        rs.next();
                         assertEquals(1, rs.getInt(1));
                     } catch (AssertionError e) {
                         // poor man's backoff
                         TimeUnit.SECONDS.sleep(5);
                         try (Statement stmt2 = connection.createStatement()) {
                             stmt2.execute(checkStatement);
-                            var rs2 = stmt2.getResultSet();
-                            rs2.next();
-                            assertEquals(1, rs2.getInt(1));
+                            try (var rs2 = stmt2.getResultSet()) {
+                                rs2.next();
+                                assertEquals(1, rs2.getInt(1));
+                            }
                         }
                     }
                 }
@@ -112,24 +112,25 @@ public class ClickHouseClusterTest extends BaseClickHouseTest {
                 try (Statement stmt = connection.createStatement()) {
                     stmt.execute(
                         "select fileId, _shard_num from DataByRowDist as D join IndexDict as I on D.rowId = I.rowId order by fileId");
-                    var rs = stmt.getResultSet();
-                    Map<Integer, Integer> buffer = new HashMap<>();
-                    while (rs.next()) {
-                        var fileId = rs.getInt(1);
-                        var shardNum = rs.getInt(2);
-                        if (buffer.containsKey(fileId)) {
-                            assertEquals(
-                                buffer.get(fileId),
-                                shardNum,
-                                "fileId="
+                    try (var rs = stmt.getResultSet()) {
+                        Map<Integer, Integer> buffer = new HashMap<>();
+                        while (rs.next()) {
+                            var fileId = rs.getInt(1);
+                            var shardNum = rs.getInt(2);
+                            if (buffer.containsKey(fileId)) {
+                                assertEquals(
+                                    buffer.get(fileId),
+                                    shardNum,
+                                    "fileId="
                                     + fileId
                                     + " found @ shardNum="
                                     + shardNum
                                     + " and @ shardNum="
                                     + buffer.get(fileId)
-                            );
-                        } else {
-                            buffer.put(fileId, shardNum);
+                                );
+                            } else {
+                                buffer.put(fileId, shardNum);
+                            }
                         }
                     }
                 }
@@ -174,8 +175,7 @@ public class ClickHouseClusterTest extends BaseClickHouseTest {
             new DockerComposeContainer(new File(uri))
                 .withExposedService("nginx", 8123)
                 // for debug
-                .withExposedService("clickhouse-s2r2", 9000)
-                .withEnv("CLICKHOUSE_USER", "default");
+                .withExposedService("clickhouse-s2r2", 9000);
         container.start();
         return container;
     }

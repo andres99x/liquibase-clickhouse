@@ -1,8 +1,9 @@
 /*-
  * #%L
- * Liquibase extension for Clickhouse
+ * Liquibase extension for ClickHouse
  * %%
- * Copyright (C) 2020 - 2024 Genestack LTD
+ * Copyright (C) 2020 - 2023 Mediarithmics
+ * Copyright (C) 2024 - 2025 Genestack Limited
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +20,10 @@
  */
 package liquibase;
 
+import com.clickhouse.jdbc.JdbcConfig;
 import liquibase.ext.clickhouse.params.StandaloneConfig;
 import org.junit.jupiter.api.BeforeAll;
-import org.testcontainers.containers.ClickHouseContainer;
+import org.testcontainers.clickhouse.ClickHouseContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -29,8 +31,9 @@ import java.sql.Connection;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
+@SuppressWarnings("JUnitTestCaseWithNoTests")
 @Testcontainers
-public class ClickHouseTest extends BaseClickHouseTest {
+public class ClickHouseTest extends BaseClickHouseTestCase {
 
 
     @BeforeAll
@@ -39,12 +42,12 @@ public class ClickHouseTest extends BaseClickHouseTest {
     }
 
     @Container
-    private static final ClickHouseContainer clickHouseContainer =
-        new ClickHouseContainer("clickhouse/clickhouse-server:24.4.3");
+    private static final ClickHouseContainer clickHouseContainer = new ClickHouseContainer(Images.CLICKHOUSE);
 
     @Override
-    protected void doWithConnection(BaseClickHouseTest.ThrowingConsumer<Connection> consumer) {
-        try (Connection connection = clickHouseContainer.createConnection("")) {
+    protected void doWithConnection(BaseClickHouseTestCase.ThrowingConsumer<Connection> consumer) {
+        String queryString = "?clickhouse.jdbc.v1=true&" + JdbcConfig.PROP_EXTERNAL_DATABASE + "=false";
+        try (Connection connection = clickHouseContainer.createConnection(queryString)) {
             consumer.accept(connection);
         } catch (Exception e) {
             fail(e);

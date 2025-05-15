@@ -17,11 +17,12 @@
  * limitations under the License.
  * #L%
  */
-package liquibase.ext.clickhouse.params;
+package liquibase;
 
-public final class StandaloneConfig implements LiquibaseClickHouseConfig {
-    @Override
-    public <T> T accept(LiquibaseConfigVisitor<T> visitor) {
-        return visitor.visit(this);
+final class Images {
+    static final String CLICKHOUSE = "clickhouse/clickhouse-server:25.3.2";
+
+    private Images() {
+        // Prevent instantiation
     }
 }

@@ -67,7 +67,11 @@
     <!-- Directory in <clickhouse-path> containing schema files for various input formats. The directory will be created if it doesn't exist. -->
     <format_schema_path>/var/lib/clickhouse/format_schema/</format_schema_path>
 
-    <users_config>users.xml</users_config>
+    <user_directories>
+        <users_xml>
+            <path>users.xml</path>
+        </users_xml>
+    </user_directories>
 
     <default_profile>default</default_profile>
     <default_database>default</default_database>

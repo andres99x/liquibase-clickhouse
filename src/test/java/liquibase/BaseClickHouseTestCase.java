@@ -2,7 +2,8 @@
  * #%L
  * Liquibase extension for ClickHouse
  * %%
- * Copyright (C) 2020 - 2024 Genestack LTD
+ * Copyright (C) 2020 - 2023 Mediarithmics
+ * Copyright (C) 2024 - 2025 Genestack Limited
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +32,10 @@ import org.testcontainers.shaded.org.apache.commons.io.output.NullWriter;
 
 import java.sql.Connection;
 
-public abstract class BaseClickHouseTest {
+abstract class BaseClickHouseTestCase {
     @Test
     void canInitializeLiquibaseSchema() {
-        runLiquibase("empty-changelog.xml", (liquibase, connection) -> liquibase.update(""));
+        runLiquibase("empty-changelog.xml", (liquibase, connection) -> liquibase.update());
     }
 
     @Test
@@ -43,8 +44,8 @@ public abstract class BaseClickHouseTest {
         runLiquibase(
             "changelog.xml",
             (liquibase, connection) -> {
-                liquibase.update("");
-                liquibase.update(""); // Test that successive updates are working
+                liquibase.update();
+                liquibase.update(); // Test that successive updates are working
             }
         );
     }
@@ -54,7 +55,7 @@ public abstract class BaseClickHouseTest {
         runLiquibase(
             "changelog.xml",
             (liquibase, connection) -> {
-                liquibase.update("");
+                liquibase.update();
                 liquibase.rollback(2, "");
             }
         );
@@ -65,7 +66,7 @@ public abstract class BaseClickHouseTest {
         runLiquibase(
             "changelog.xml",
             (liquibase, connection) -> {
-                liquibase.update("");
+                liquibase.update();
                 liquibase.tag("testTag");
             }
         );
@@ -111,7 +112,7 @@ public abstract class BaseClickHouseTest {
         String changelog, ThrowingBiConsumer<Liquibase, Connection> liquibaseAction
     ) {
         DatabaseFactory dbFactory = DatabaseFactory.getInstance();
-        ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor();
+        try (ResourceAccessor resourceAccessor = new ClassLoaderResourceAccessor()) {
 
         doWithConnection(
             connection -> {
@@ -122,6 +123,9 @@ public abstract class BaseClickHouseTest {
                 Liquibase liquibase = new Liquibase(changelog, resourceAccessor, database);
                 liquibaseAction.accept(liquibase, connection);
             });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     protected static void setConfig(LiquibaseClickHouseConfig config)
@@ -133,11 +137,11 @@ public abstract class BaseClickHouseTest {
 
     @FunctionalInterface
     protected interface ThrowingBiConsumer<T1, T2> {
-        void accept(T1 t1, T2 t2) throws java.lang.Exception;
+        void accept(T1 t1, T2 t2) throws Exception;
     }
 
     @FunctionalInterface
     protected interface ThrowingConsumer<T1> {
-        void accept(T1 t1) throws java.lang.Exception;
+        void accept(T1 t1) throws Exception;
     }
 }

@@ -14,13 +14,13 @@
 
 services:
   zookeeper:
-    image: zookeeper:3.9.2
+    image: zookeeper:3.9.3
     ports:
       - 2181
     hostname: zookeeper
 
   clickhouse-s1r1:
-    image: clickhouse/clickhouse-server:24.4.3
+    image: clickhouse/clickhouse-server:25.3.2
     hostname: clickhouse-s1r1
     ports:
       - 8123
@@ -36,9 +36,11 @@ services:
       - ./../../../../../log/clickhouse-s1r1-server:/var/log/clickhouse-server
     depends_on:
       - zookeeper
+    environment:
+      CLICKHOUSE_SKIP_USER_SETUP: 1
 
   clickhouse-s1r2:
-    image: clickhouse/clickhouse-server:24.4.3
+    image: clickhouse/clickhouse-server:25.3.2
     hostname: clickhouse-s1r2
     ports:
       - 8123
@@ -54,9 +56,11 @@ services:
       - ./../../../../../log/clickhouse-s1r2-server:/var/log/clickhouse-server
     depends_on:
       - zookeeper
+    environment:
+      CLICKHOUSE_SKIP_USER_SETUP: 1
 
   clickhouse-s2r1:
-    image: clickhouse/clickhouse-server:24.4.3
+    image: clickhouse/clickhouse-server:25.3.2
     hostname: clickhouse-s2r1
     ports:
       - 8123
@@ -72,9 +76,11 @@ services:
       - ./../../../../../log/clickhouse-s2r1-server:/var/log/clickhouse-server
     depends_on:
       - zookeeper
+    environment:
+      CLICKHOUSE_SKIP_USER_SETUP: 1
 
   clickhouse-s2r2:
-    image: clickhouse/clickhouse-server:24.4.3
+    image: clickhouse/clickhouse-server:25.3.2
     hostname: clickhouse-s2r2
     ports:
       - 8123
@@ -90,9 +96,11 @@ services:
       - ./../../../../../log/clickhouse-s2r2-server:/var/log/clickhouse-server
     depends_on:
       - zookeeper
+    environment:
+      CLICKHOUSE_SKIP_USER_SETUP: 1
 
   nginx:
-    image: nginx:1.27.0
+    image: nginx:1.27.4
     ports:
       - 8123
     volumes:

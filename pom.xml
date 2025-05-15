@@ -5,7 +5,7 @@
 
     <groupId>com.genestack</groupId>
     <artifactId>liquibase-clickhouse</artifactId>
-    <version>0.8.3</version>
+    <version>0.8.4</version>
     <packaging>jar</packaging>
     <inceptionYear>2020</inceptionYear>
 
@@ -14,7 +14,7 @@
     <url>https://github.com/genestack/liquibase-clickhouse</url>
 
     <organization>
-        <name>Genestack LTD</name>
+        <name>Genestack Limited</name>
         <url>https://genestack.com</url>
     </organization>
 
@@ -47,6 +47,11 @@
             <name>Oleg Kunitsyn</name>
             <organization>Genestack</organization>
         </contributor>
+        <contributor>
+            <email>mikhail.smazhevsky@genestack.com</email>
+            <name>Mikhail Smazhevsky</name>
+            <organization>Genestack</organization>
+        </contributor>
     </contributors>
 
     <scm>
@@ -67,38 +72,24 @@
     <properties>
         <encoding>UTF-8</encoding>
         <project.build.sourceEncoding>${encoding}</project.build.sourceEncoding>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <clickhouse-jdbc.version>0.6.0-patch1</clickhouse-jdbc.version>
-        <liquibase.version>4.26.0</liquibase.version>
-        <junit.version>5.4.0</junit.version>
-        <test-containers.version>1.19.7</test-containers.version>
-        <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
-        <maven-plugin-plugin.version>3.9.6</maven-plugin-plugin.version>
-        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
-        <license-maven-plugin.version>2.0.0</license-maven-plugin.version>
-        <maven-shade-plugin.version>3.5.2</maven-shade-plugin.version>
-        <fmt-maven-plugin.version>2.9.1</fmt-maven-plugin.version>
-        <impsort-maven-plugin.version>1.9.0</impsort-maven-plugin.version>
-        <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
-        <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
-        <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
-        <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
-        <snakeyaml.version>2.2</snakeyaml.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <clickhouse-jdbc.version>0.8.5</clickhouse-jdbc.version>
+        <liquibase.version>4.31.1</liquibase.version>
+        <junit.version>5.12.2</junit.version>
+        <test-containers.version>1.21.0</test-containers.version>
+        <snakeyaml.version>2.4</snakeyaml.version>
         <typesafe-config.version>1.4.3</typesafe-config.version>
-        <junit.version>5.10.2</junit.version>
-        <slf4j.version>2.0.12</slf4j.version>
-        <apache.http5.version>5.3.1</apache.http5.version>
-        <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
-        <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
-        <maven-gpg-plugin.version>3.2.4</maven-gpg-plugin.version>
-        <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
-        <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
-        <snakeyaml.version>2.2</snakeyaml.version>
-        <typesafe-config.version>1.4.3</typesafe-config.version>
-        <junit.version>5.10.2</junit.version>
-        <slf4j.version>2.0.12</slf4j.version>
-        <apache.http5.version>5.3.1</apache.http5.version>
+        <slf4j.version>2.0.17</slf4j.version>
+        <apache.http5.version>5.2.1</apache.http5.version> <!--should be aligned with version in clickhouse-jdbc.pom-->
+        <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
+        <license-maven-plugin.version>2.5.0</license-maven-plugin.version>
+        <central-publishing-maven-plugin.version>0.7.0</central-publishing-maven-plugin.version>
+        <maven-shade-plugin.version>3.6.0</maven-shade-plugin.version>
+        <maven-gpg-plugin.version>3.2.7</maven-gpg-plugin.version>
+        <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
+        <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
+        <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
     </properties>
 
     <dependencies>
@@ -242,7 +233,7 @@
                 <configuration>
                     <licenseName>apache_v2</licenseName>
                     <licenseFile>LICENSE</licenseFile>
-                    <canUpdateCopyright>true</canUpdateCopyright>
+                    <canUpdateCopyright>false</canUpdateCopyright>
                     <addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
                     <includes>
                         <include>**/*.java</include>
@@ -266,7 +257,7 @@
             <plugin>
                 <groupId>org.sonatype.central</groupId>
                 <artifactId>central-publishing-maven-plugin</artifactId>
-                <version>0.5.0</version>
+                <version>${central-publishing-maven-plugin.version}</version>
                 <extensions>true</extensions>
                 <configuration>
                     <publishingServerId>central</publishingServerId>
